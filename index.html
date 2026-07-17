@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HKS Digital Archive</title>
+  <meta name="description" content="Interactive digital archive of architectural research, prototypes, and 3D objects.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header" aria-label="Archive navigation">
+    <a class="brand nav-btn active" href="#" data-view="observatory">Observatory</a>
+    <nav class="nav" aria-label="Main navigation">
+      <button class="nav-btn" data-view="timeline">Timeline</button>
+    </nav>
+    <div class="header-actions">
+      <button id="searchButton" class="nav-btn" aria-label="Search archive">Search</button>
+      <button class="nav-btn" data-view="about">About</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <section id="observatory" class="view active-view" aria-label="Archive observatory">
+      <div id="canvas" class="canvas">
+        <svg id="orbitSvg" class="orbit-svg" aria-hidden="true"></svg>
+        <div id="nodesLayer" class="nodes-layer"></div>
+      </div>
+
+      <div class="observatory-copy">
+        <h1>HKS Digital Archive</h1>
+        <p>Navigate the constellation of<br>architectural prototypes.</p>
+      </div>
+
+      <button class="edge-nav edge-nav-left" data-view="relationships">Relationships</button>
+      <button class="edge-nav edge-nav-right" data-view="about">About</button>
+      <button class="corner-about" data-view="about">About</button>
+
+      <div class="archive-total">Archive Items: <span id="itemCount"></span></div>
+      <div class="canvas-hint">Drag to explore · Scroll to zoom · Click a node</div>
+      <div class="zoom-controls" aria-label="Canvas zoom controls">
+        <button id="zoomIn" aria-label="Zoom in">＋</button>
+        <button id="zoomOut" aria-label="Zoom out">−</button>
+        <button id="zoomReset" aria-label="Reset view">↺</button>
+      </div>
+    </section>
+
+    <section id="relationships" class="view content-view">
+      <div class="content-heading">
+        <p class="eyebrow">Cross-reference engine</p>
+        <h1>Relationships</h1>
+        <p>Connections between materials, fabrication systems, typologies, geometry, and project phase.</p>
+      </div>
+      <div class="relationship-layout">
+        <aside class="filter-panel"><h2>Filter by category</h2><div id="relationshipFilters"></div></aside>
+        <div id="relationshipGraph" class="relationship-graph"></div>
+      </div>
+    </section>
+
+    <section id="timeline" class="view content-view">
+      <div class="content-heading">
+        <p class="eyebrow">Archive chronology</p>
+        <h1>Timeline</h1>
+        <p>Research objects organized by year, from field trials to speculative prototypes.</p>
+      </div>
+      <div id="timelineList" class="timeline-list"></div>
+    </section>
+
+    <section id="about" class="view content-view">
+      <div class="about-grid">
+        <div><p class="eyebrow">About the archive</p><h1>A living map of design intelligence.</h1></div>
+        <div class="about-copy">
+          <p>This interface treats the archive less like a filing cabinet and more like a constellation. Each object sits within overlapping systems of material, geometry, fabrication, typology, and time.</p>
+          <p>The prototype is built with plain HTML, CSS, and JavaScript, with Three.js used only when an interactive 3D object is opened.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <aside id="detailPanel" class="detail-panel" aria-hidden="true">
+    <div class="detail-panel-bar">
+      <span>HKS Digital Archive</span>
+      <button id="closeDetail" class="close-button" aria-label="Close details">×</button>
+    </div>
+    <div id="detailContent"></div>
+  </aside>
+
+  <div id="searchOverlay" class="search-overlay" aria-hidden="true">
+    <div class="search-dialog">
+      <div class="search-top">
+        <input id="searchInput" type="search" placeholder="Search title, material, location…" autocomplete="off">
+        <button id="closeSearch" aria-label="Close search">×</button>
+      </div>
+      <div id="searchResults" class="search-results"></div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="script.js"></script>
+</body>
+</html>
