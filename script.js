@@ -645,6 +645,12 @@ let orbitClock=0;
 let lastOrbitTime=performance.now();
 let canvasAnimationFrame=null;
 let modelViewer=null;
+let relationshipViewer=null;
+const relationshipState={
+  selectedId:archiveItems[0]?.id||null,
+  hoveredId:null,
+  mode:'all'
+};
 
 archiveItems.forEach((item,index)=>{
   item.orbitIndex=Number.isInteger(item.orbitIndex)?item.orbitIndex:RING_PATTERN[index%RING_PATTERN.length];
@@ -659,10 +665,12 @@ archiveItems.forEach((item,index)=>{
 $('#itemCount').textContent=String(archiveItems.length).padStart(3,'0');
 
 function setView(name){
+  if(state.view==='relationships'&&name!=='relationships')destroyRelationshipNetwork();
   state.view=name;
   $$('.view').forEach(view=>view.classList.toggle('active-view',view.id===name));
   $$('.nav-btn').forEach(button=>button.classList.toggle('active',button.dataset.view===name));
   closeDetail(false);
+  if(name==='relationships')requestAnimationFrame(()=>initRelationshipNetwork());
 }
 
 $$('[data-view]').forEach(element=>element.addEventListener('click',event=>{
@@ -1254,21 +1262,463 @@ $('#zoomReset').onclick=()=>{
 
 function renderFilters(){
   const categories=['Material','Fabrication','Typology','Geometry','Project Phase'];
-  $('#relationshipFilters').innerHTML=categories.map(category=>`<label class="filter-option"><input type="checkbox" checked value="${category}"><span>${category}</span></label>`).join('');
+  $('#relationshipFilters').innerHTML=categories.map(category=>`<label class="relationship-filter-option"><input type="checkbox" checked value="${category}"><span>${category}</span></label>`).join('');
   $$('#relationshipFilters input').forEach(input=>input.onchange=()=>{
     input.checked?state.filters.add(input.value):state.filters.delete(input.value);
-    renderRelationships();
+    updateRelationshipNetworkVisibility();
+  });
+  $$('.relationship-mode').forEach(button=>button.onclick=()=>{
+    relationshipState.mode=button.dataset.relationshipMode;
+    $$('.relationship-mode').forEach(entry=>entry.classList.toggle('active',entry===button));
+    updateRelationshipNetworkVisibility();
+  });
+  $('#relationshipResetView')?.addEventListener('click',resetRelationshipCamera);
+  $('#openRelationshipPrototype')?.addEventListener('click',()=>{
+    if(relationshipState.selectedId)focusItem(relationshipState.selectedId);
   });
 }
 
 function renderRelationships(){
-  const visible=relationships.filter(relationship=>state.filters.has(relationship.category));
-  $('#relationshipGraph').innerHTML=visible.map(relationship=>{
-    const source=archiveItems.find(item=>item.id===relationship.source);
-    const target=archiveItems.find(item=>item.id===relationship.target);
-    return `<article class="relationship-card" data-id="${source.id}"><div class="category">${relationship.category}</div><h3>${source.title} ↔ ${target.title}</h3><p>${relationship.description}</p><div class="strength"><span style="width:${relationship.strength*100}%"></span></div></article>`;
-  }).join('')||'<p>No relationship categories selected.</p>';
-  $$('.relationship-card').forEach(card=>card.onclick=()=>focusItem(card.dataset.id));
+  updateRelationshipPanels(relationshipState.selectedId);
+  updateRelationshipNetworkVisibility();
+  if(state.view==='relationships')requestAnimationFrame(()=>initRelationshipNetwork());
+}
+
+function relationshipFamily(item){
+  if(item.id.includes('-3dp-'))return '3D Print';
+  if(item.id.includes('-col-'))return 'Column Print';
+  if(item.id.includes('-con-'))return 'Concrete Print';
+  if(item.id.includes('-win-'))return 'Window Profile';
+  return 'Large Scale';
+}
+
+function relationshipCategoryColor(category){
+  return {
+    'Material':0x9ba6b3,
+    'Typology':0xc8cdcf,
+    'Fabrication':0xaeb2b0,
+    'Geometry':0xe3ded3,
+    'Project Phase':0x717981
+  }[category]||0xaeb2b0;
+}
+
+function relationshipLayout(){
+  const definitions={
+    '3D Print':{center:[-6.2,2.9,-1.8],direction:[1.55,-.12,.72]},
+    'Column Print':{center:[-1.2,.65,.65],direction:[1.6,.08,-.55]},
+    'Concrete Print':{center:[4.3,-2.15,-.15],direction:[1.65,.16,.7]},
+    'Window Profile':{center:[6.6,2.45,-1.25],direction:[1.6,-.2,.9]},
+    'Large Scale':{center:[-.1,-4.1,2.3],direction:[1,0,0]}
+  };
+  const groups=new Map();
+  archiveItems.forEach(item=>{
+    const family=relationshipFamily(item);
+    if(!groups.has(family))groups.set(family,[]);
+    groups.get(family).push(item);
+  });
+  const positions=new Map();
+  groups.forEach((items,family)=>{
+    const definition=definitions[family];
+    items.forEach((item,index)=>{
+      const offset=index-(items.length-1)/2;
+      positions.set(item.id,new THREE.Vector3(
+        definition.center[0]+definition.direction[0]*offset,
+        definition.center[1]+definition.direction[1]*offset+Math.sin(index*1.7)*.34,
+        definition.center[2]+definition.direction[2]*offset+Math.cos(index*1.31)*.42
+      ));
+    });
+  });
+  return positions;
+}
+
+function makeRelationshipLabel(text,subtext=''){
+  const canvas=document.createElement('canvas');
+  canvas.width=640;canvas.height=150;
+  const context=canvas.getContext('2d');
+  context.clearRect(0,0,canvas.width,canvas.height);
+  context.font='600 34px Arial';
+  context.fillStyle='rgba(236,238,237,.96)';
+  context.fillText(text.slice(0,31),18,48);
+  context.font='24px Arial';
+  context.fillStyle='rgba(158,164,167,.92)';
+  context.fillText(subtext.slice(0,42),18,86);
+  const texture=new THREE.CanvasTexture(canvas);
+  texture.colorSpace=THREE.SRGBColorSpace;
+  texture.minFilter=THREE.LinearFilter;
+  const material=new THREE.SpriteMaterial({map:texture,transparent:true,depthWrite:false,opacity:.88});
+  const sprite=new THREE.Sprite(material);
+  sprite.scale.set(4.25,.99,1);
+  sprite.userData.labelTexture=texture;
+  return sprite;
+}
+
+function relationshipCurveBetween(source,target,index,strength){
+  const delta=target.clone().sub(source);
+  const normal=new THREE.Vector3(-delta.y,delta.x,1.5).normalize();
+  const lift=1.25+strength*1.6+(index%3)*.28;
+  const controlA=source.clone().lerp(target,.32).addScaledVector(normal,lift);
+  const controlB=source.clone().lerp(target,.68).addScaledVector(normal,lift*.82);
+  return new THREE.CubicBezierCurve3(source,controlA,controlB,target);
+}
+
+function makeNetworkNode(item,position,index){
+  const group=new THREE.Group();
+  group.position.copy(position);
+  group.userData.itemId=item.id;
+
+  const geometry=new THREE.BoxGeometry(1.02,.64,.2);
+  const material=new THREE.MeshStandardMaterial({
+    color:index%3===0?0xd8d9d5:0xaeb2b4,
+    roughness:.74,
+    metalness:.06,
+    emissive:0x101214,
+    transparent:true,
+    opacity:.94
+  });
+  const mesh=new THREE.Mesh(geometry,material);
+  mesh.castShadow=false;
+  mesh.userData.itemId=item.id;
+  group.add(mesh);
+
+  const edgeGeometry=new THREE.EdgesGeometry(geometry);
+  const edgeMaterial=new THREE.LineBasicMaterial({color:0xf1f1ed,transparent:true,opacity:.46});
+  const edges=new THREE.LineSegments(edgeGeometry,edgeMaterial);
+  edges.userData.itemId=item.id;
+  group.add(edges);
+
+  const marker=new THREE.Mesh(
+    new THREE.OctahedronGeometry(.15,0),
+    new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.88})
+  );
+  marker.position.set(.31,.07,.18);
+  marker.userData.itemId=item.id;
+  group.add(marker);
+
+  const label=makeRelationshipLabel(item.archiveCode,`${relationshipFamily(item)} · ${item.year}`);
+  label.position.set(1.85,-.02,.05);
+  label.userData.itemId=item.id;
+  group.add(label);
+
+  group.userData={itemId:item.id,mesh,edges,marker,label,baseScale:1};
+  return group;
+}
+
+function updateRelationshipPanels(id){
+  const item=archiveItems.find(entry=>entry.id===id)||archiveItems[0];
+  if(!item)return;
+  relationshipState.selectedId=item.id;
+  const connected=relationships
+    .filter(relationship=>relationship.source===item.id||relationship.target===item.id)
+    .sort((a,b)=>b.strength-a.strength);
+  const strongest=connected[0];
+  const neighbor=strongest?archiveItems.find(entry=>entry.id===(strongest.source===item.id?strongest.target:strongest.source)):null;
+
+  const code=$('#relationshipSelectedCode');if(code)code.textContent=item.archiveCode;
+  const title=$('#relationshipSelectedTitle');if(title)title.textContent=item.title;
+  const score=$('#relationshipDetailScore');if(score)score.textContent=strongest?`${Math.round(strongest.strength*100)}% similarity`:'No direct match';
+  const category=$('#relationshipDetailCategory');if(category)category.textContent=strongest?`${strongest.category} · ${neighbor?.title||''}`:'No relationship selected';
+  const detail=$('#relationshipDetailText');if(detail)detail.textContent=strongest?strongest.description:'This prototype currently has no explicit connections in the archive dataset.';
+
+  const list=$('#relationshipNeighborList');
+  if(list)list.innerHTML=connected.slice(0,4).map(relationship=>{
+    const other=archiveItems.find(entry=>entry.id===(relationship.source===item.id?relationship.target:relationship.source));
+    return `<button class="relationship-neighbor" data-neighbor-id="${other.id}"><b>${other.title}</b><span>${Math.round(relationship.strength*100)}%</span></button>`;
+  }).join('');
+  $$('.relationship-neighbor').forEach(button=>button.onclick=()=>selectRelationshipNode(button.dataset.neighborId,true));
+
+  const preview=$('#relationshipPreviewImage');
+  const fallback=$('#relationshipPreviewFallback');
+  if(preview){
+    if(fallback)fallback.style.display='';
+    preview.classList.remove('visible');
+    preview.removeAttribute('src');
+    if(item.model?.diffuse){
+      preview.onload=()=>{preview.classList.add('visible');if(fallback)fallback.style.display='none';};
+      preview.onerror=()=>{preview.classList.remove('visible');if(fallback)fallback.style.display='';};
+      preview.src=item.model.diffuse;
+    }else if(fallback)fallback.style.display='';
+  }
+  const openButton=$('#openRelationshipPrototype');if(openButton)openButton.disabled=!item;
+}
+
+function selectRelationshipNode(id,focus=false){
+  relationshipState.selectedId=id;
+  updateRelationshipPanels(id);
+  updateRelationshipNetworkVisibility();
+  if(focus&&relationshipViewer){
+    const node=relationshipViewer.nodes.get(id);
+    if(node)relationshipViewer.focusTarget=node.position.clone();
+  }
+}
+
+function visibleRelationshipSet(){
+  return relationships.filter(relationship=>{
+    if(!state.filters.has(relationship.category))return false;
+    if(relationshipState.mode==='direct')return relationship.source===relationshipState.selectedId||relationship.target===relationshipState.selectedId;
+    if(relationshipState.mode==='strongest')return relationship.strength>=.65;
+    return true;
+  });
+}
+
+function updateRelationshipNetworkVisibility(){
+  const visible=visibleRelationshipSet();
+  const visibleKeys=new Set(visible.map(relationship=>`${relationship.source}|${relationship.target}|${relationship.category}`));
+  const involved=new Set();
+  visible.forEach(relationship=>{involved.add(relationship.source);involved.add(relationship.target);});
+  $('#relationshipVisibleCount')&&( $('#relationshipVisibleCount').textContent=String(visible.length).padStart(3,'0') );
+  if(!relationshipViewer)return;
+
+  relationshipViewer.connections.forEach(connection=>{
+    const key=`${connection.relationship.source}|${connection.relationship.target}|${connection.relationship.category}`;
+    const shown=visibleKeys.has(key);
+    connection.line.visible=shown;
+    connection.particle.visible=shown;
+    connection.label.visible=shown&&connection.relationship.strength>=.72;
+    if(shown){
+      const direct=connection.relationship.source===relationshipState.selectedId||connection.relationship.target===relationshipState.selectedId;
+      connection.line.material.opacity=direct?.88:.24+connection.relationship.strength*.28;
+      connection.particle.material.opacity=direct?1:.72;
+      connection.label.material.opacity=direct?.92:.46;
+    }
+  });
+
+  relationshipViewer.nodes.forEach((group,id)=>{
+    const selected=id===relationshipState.selectedId;
+    const active=relationshipState.mode==='all'||involved.has(id)||selected;
+    group.visible=true;
+    group.userData.mesh.material.opacity=active?.94:.13;
+    group.userData.mesh.material.emissive.setHex(selected?0x526477:0x101214);
+    group.userData.edges.material.opacity=selected?.95:(active?.42:.08);
+    group.userData.marker.material.opacity=selected?1:(active?.8:.1);
+    group.userData.label.material.opacity=selected?1:(active?.78:.1);
+    group.scale.setScalar(selected?1.38:1);
+  });
+}
+
+async function initRelationshipNetwork(){
+  const host=$('#relationshipNetwork');
+  const status=$('#relationshipNetworkStatus');
+  if(!host||state.view!=='relationships')return;
+  if(relationshipViewer?.host===host){
+    relationshipViewer.resize();
+    updateRelationshipNetworkVisibility();
+    if(status){status.textContent='';status.classList.add('loaded');}
+    return;
+  }
+  if(status){status.textContent='Loading relationship field…';status.classList.remove('loaded','error');}
+  destroyRelationshipNetwork();
+  try{await ensureThree();}
+  catch(error){
+    console.error('Relationship network failed to load',error);
+    if(status){status.textContent='3D relationship library could not load. Check the connection and refresh.';status.classList.add('error');}
+    return;
+  }
+  if(state.view!=='relationships'||!document.body.contains(host))return;
+
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x090b0c);
+  scene.fog=new THREE.FogExp2(0x090b0c,.026);
+  const camera=new THREE.PerspectiveCamera(44,1,.1,150);
+  camera.position.set(1.2,5.8,19.5);
+  const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.8));
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  host.innerHTML='';host.appendChild(renderer.domElement);
+
+  const controls=new OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true;
+  controls.dampingFactor=.055;
+  controls.enablePan=true;
+  controls.screenSpacePanning=true;
+  controls.minDistance=6;
+  controls.maxDistance=42;
+  controls.target.set(.4,-.2,0);
+  controls.update();
+
+  scene.add(new THREE.HemisphereLight(0xd8e0e8,0x101214,1.8));
+  const keyLight=new THREE.DirectionalLight(0xffffff,2.1);keyLight.position.set(6,10,9);scene.add(keyLight);
+  const rimLight=new THREE.DirectionalLight(0x879db7,1.4);rimLight.position.set(-10,2,-7);scene.add(rimLight);
+
+  const positions=relationshipLayout();
+  const nodeMap=new Map();
+  const pickables=[];
+  archiveItems.forEach((item,index)=>{
+    const node=makeNetworkNode(item,positions.get(item.id),index);
+    nodeMap.set(item.id,node);
+    node.traverse(child=>{if(child.isMesh)pickables.push(child);});
+    scene.add(node);
+  });
+
+  const connections=[];
+  relationships.forEach((relationship,index)=>{
+    const source=positions.get(relationship.source),target=positions.get(relationship.target);
+    if(!source||!target)return;
+    const curve=relationshipCurveBetween(source,target,index,relationship.strength);
+    const points=curve.getPoints(80);
+    const geometry=new THREE.BufferGeometry().setFromPoints(points);
+    const material=new THREE.LineBasicMaterial({
+      color:relationshipCategoryColor(relationship.category),
+      transparent:true,
+      opacity:.26+relationship.strength*.28,
+      depthWrite:false
+    });
+    const line=new THREE.Line(geometry,material);
+    scene.add(line);
+
+    const particle=new THREE.Mesh(
+      new THREE.SphereGeometry(.055+relationship.strength*.035,8,8),
+      new THREE.MeshBasicMaterial({color:relationshipCategoryColor(relationship.category),transparent:true,opacity:.82})
+    );
+    scene.add(particle);
+
+    const label=makeRelationshipLabel(relationship.category,`${Math.round(relationship.strength*100)}% relationship`);
+    label.scale.multiplyScalar(.58);
+    label.position.copy(curve.getPoint(.53)).add(new THREE.Vector3(0,.32,0));
+    label.material.opacity=.46;
+    label.visible=relationship.strength>=.72;
+    scene.add(label);
+    connections.push({relationship,curve,line,particle,label,phase:(index*.137)%1});
+  });
+
+  const dustGeometry=new THREE.BufferGeometry();
+  const dustPositions=[];
+  for(let i=0;i<330;i++)dustPositions.push((Math.random()-.5)*36,(Math.random()-.5)*20,(Math.random()-.5)*18);
+  dustGeometry.setAttribute('position',new THREE.Float32BufferAttribute(dustPositions,3));
+  const dust=new THREE.Points(dustGeometry,new THREE.PointsMaterial({color:0xbcc3c7,size:.018,transparent:true,opacity:.32,depthWrite:false}));
+  scene.add(dust);
+
+  const raycaster=new THREE.Raycaster();
+  const pointer=new THREE.Vector2();
+  const tooltip=$('#relationshipNetworkTooltip');
+  const setPointer=event=>{
+    const rect=renderer.domElement.getBoundingClientRect();
+    pointer.x=((event.clientX-rect.left)/rect.width)*2-1;
+    pointer.y=-((event.clientY-rect.top)/rect.height)*2+1;
+  };
+  const findItemId=object=>{
+    let current=object;
+    while(current){if(current.userData?.itemId)return current.userData.itemId;current=current.parent;}
+    return null;
+  };
+  const onPointerMove=event=>{
+    setPointer(event);raycaster.setFromCamera(pointer,camera);
+    const hit=raycaster.intersectObjects(pickables,false)[0];
+    const id=hit?findItemId(hit.object):null;
+    relationshipState.hoveredId=id;
+    renderer.domElement.style.cursor=id?'pointer':'grab';
+    if(tooltip){
+      if(id){
+        const item=archiveItems.find(entry=>entry.id===id);
+        tooltip.innerHTML=`<strong>${item.archiveCode}</strong><br>${item.title}`;
+        tooltip.style.left=`${event.clientX-renderer.domElement.getBoundingClientRect().left}px`;
+        tooltip.style.top=`${event.clientY-renderer.domElement.getBoundingClientRect().top}px`;
+        tooltip.classList.add('visible');tooltip.setAttribute('aria-hidden','false');
+      }else{tooltip.classList.remove('visible');tooltip.setAttribute('aria-hidden','true');}
+    }
+  };
+  const onClick=event=>{
+    setPointer(event);raycaster.setFromCamera(pointer,camera);
+    const hit=raycaster.intersectObjects(pickables,false)[0];
+    const id=hit?findItemId(hit.object):null;
+    if(id)selectRelationshipNode(id,false);
+  };
+  const onDoubleClick=event=>{
+    setPointer(event);raycaster.setFromCamera(pointer,camera);
+    const hit=raycaster.intersectObjects(pickables,false)[0];
+    const id=hit?findItemId(hit.object):null;
+    if(id)focusItem(id);
+  };
+  renderer.domElement.addEventListener('pointermove',onPointerMove);
+  renderer.domElement.addEventListener('pointerleave',()=>tooltip?.classList.remove('visible'));
+  renderer.domElement.addEventListener('click',onClick);
+  renderer.domElement.addEventListener('dblclick',onDoubleClick);
+
+  const resize=()=>{
+    const width=Math.max(1,host.clientWidth),height=Math.max(1,host.clientHeight);
+    renderer.setSize(width,height,false);camera.aspect=width/height;camera.updateProjectionMatrix();
+  };
+  const resizeObserver=new ResizeObserver(resize);resizeObserver.observe(host);resize();
+
+  relationshipViewer={
+    host,scene,camera,renderer,controls,nodes:nodeMap,connections,resizeObserver,
+    resize,animationId:null,elapsed:0,focusTarget:null,
+    listeners:{onPointerMove,onClick,onDoubleClick}
+  };
+  updateRelationshipPanels(relationshipState.selectedId);
+  updateRelationshipNetworkVisibility();
+  if(status){status.classList.add('loaded');setTimeout(()=>status.textContent='',450);}
+
+  let last=performance.now();
+  const animate=now=>{
+    if(!relationshipViewer||relationshipViewer.renderer!==renderer)return;
+    const delta=Math.min((now-last)/1000,.05);last=now;
+    relationshipViewer.elapsed+=delta;
+    connections.forEach((connection,index)=>{
+      const t=(relationshipViewer.elapsed*(.055+connection.relationship.strength*.035)+connection.phase)%1;
+      connection.particle.position.copy(connection.curve.getPoint(t));
+      connection.line.material.opacity*=1;
+    });
+    nodeMap.forEach((node,index)=>{
+      node.rotation.y=Math.sin(relationshipViewer.elapsed*.28+index*.8)*.07;
+      node.position.y+=(Math.sin(relationshipViewer.elapsed*.55+index)-Math.sin((relationshipViewer.elapsed-delta)*.55+index))*.035;
+    });
+    if(relationshipViewer.focusTarget){
+      controls.target.lerp(relationshipViewer.focusTarget,.075);
+      if(controls.target.distanceTo(relationshipViewer.focusTarget)<.02)relationshipViewer.focusTarget=null;
+    }
+    controls.update();renderer.render(scene,camera);
+    relationshipViewer.animationId=requestAnimationFrame(animate);
+  };
+  relationshipViewer.animationId=requestAnimationFrame(animate);
+}
+
+function resetRelationshipCamera(){
+  if(!relationshipViewer)return;
+  relationshipViewer.camera.position.set(1.2,5.8,19.5);
+  relationshipViewer.controls.target.set(.4,-.2,0);
+  relationshipViewer.controls.update();
+}
+
+function destroyRelationshipNetwork(){
+  if(!relationshipViewer)return;
+  cancelAnimationFrame(relationshipViewer.animationId);
+  relationshipViewer.resizeObserver?.disconnect();
+  relationshipViewer.controls?.dispose();
+  relationshipViewer.scene?.traverse(object=>{
+    object.geometry?.dispose?.();
+    const materials=Array.isArray(object.material)?object.material:[object.material];
+    materials.filter(Boolean).forEach(material=>{material.map?.dispose?.();material.dispose?.();});
+    object.userData?.labelTexture?.dispose?.();
+  });
+  relationshipViewer.renderer?.dispose();
+  relationshipViewer.renderer?.domElement?.remove();
+  relationshipViewer=null;
+}
+
+function addInferredSeriesRelationships(){
+  const existing=new Set(relationships.map(relationship=>[relationship.source,relationship.target].sort().join('|')));
+  const families=new Map();
+  archiveItems.forEach(item=>{
+    const family=relationshipFamily(item);
+    if(!families.has(family))families.set(family,[]);
+    families.get(family).push(item);
+  });
+  families.forEach((items,family)=>{
+    items.forEach((source,sourceIndex)=>items.forEach((target,targetIndex)=>{
+      if(targetIndex<=sourceIndex)return;
+      const key=[source.id,target.id].sort().join('|');
+      if(existing.has(key))return;
+      const separation=targetIndex-sourceIndex;
+      relationships.push({
+        source:source.id,
+        target:target.id,
+        category:family==='Window Profile'?'Geometry':'Fabrication',
+        description:`Inferred ${family.toLowerCase()} series relationship based on shared prototype type, material system, and fabrication workflow.`,
+        strength:Math.max(.46,.66-separation*.055)
+      });
+      existing.add(key);
+    }));
+  });
 }
 
 function renderTimeline(){
@@ -1314,6 +1764,7 @@ document.addEventListener('keydown',event=>{
   }
 });
 
+addInferredSeriesRelationships();
 renderObservatory();
 renderFilters();
 renderRelationships();

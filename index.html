@@ -44,15 +44,71 @@
       </div>
     </section>
 
-    <section id="relationships" class="view content-view">
-      <div class="content-heading">
-        <p class="eyebrow">Cross-reference engine</p>
-        <h1>Relationships</h1>
-        <p>Connections between materials, fabrication systems, typologies, geometry, and project phase.</p>
+    <section id="relationships" class="view relationship-view" aria-label="Prototype relationship network">
+      <div class="relationship-titlebar">
+        <h1>Prototype Relationships</h1>
+        <p><span id="relationshipVisibleCount">000</span> visible connections</p>
       </div>
-      <div class="relationship-layout">
-        <aside class="filter-panel"><h2>Filter by category</h2><div id="relationshipFilters"></div></aside>
-        <div id="relationshipGraph" class="relationship-graph"></div>
+
+      <div class="relationship-workspace">
+        <aside class="relationship-rail relationship-rail-left">
+          <section class="relationship-panel-block selected-project-block">
+            <p class="relationship-kicker">Selected project</p>
+            <span class="relationship-small-label">Confidential code</span>
+            <strong id="relationshipSelectedCode">—</strong>
+            <span id="relationshipSelectedTitle" class="relationship-selected-title">Select a prototype in the network</span>
+          </section>
+
+          <section class="relationship-panel-block">
+            <p class="relationship-kicker">Filters</p>
+            <div id="relationshipFilters" class="relationship-filter-list"></div>
+          </section>
+
+          <section class="relationship-panel-block relationship-mode-block">
+            <p class="relationship-kicker">View mode</p>
+            <button class="relationship-mode active" data-relationship-mode="all">[ All relationships ]</button>
+            <button class="relationship-mode" data-relationship-mode="direct">[ Direct relationships ]</button>
+            <button class="relationship-mode" data-relationship-mode="strongest">[ Strongest similarities ]</button>
+          </section>
+        </aside>
+
+        <div class="relationship-network-shell">
+          <div id="relationshipNetwork" class="relationship-network" role="application" aria-label="Interactive 3D relationship network"></div>
+          <div id="relationshipNetworkStatus" class="relationship-network-status">Loading relationship field…</div>
+          <div id="relationshipNetworkTooltip" class="relationship-network-tooltip" aria-hidden="true"></div>
+          <div class="relationship-network-hint">Drag to orbit · Right-drag to pan · Scroll to zoom · Double-click a prototype to open it</div>
+          <button id="relationshipResetView" class="relationship-reset-view" type="button">Reset view</button>
+        </div>
+
+        <aside class="relationship-rail relationship-rail-right">
+          <section class="relationship-panel-block relationship-legend-block">
+            <p class="relationship-kicker">Relationship legend</p>
+            <div class="relationship-legend">
+              <span><i data-category="Material"></i>Material similarity</span>
+              <span><i data-category="Typology"></i>Typology</span>
+              <span><i data-category="Fabrication"></i>Fabrication</span>
+              <span><i data-category="Geometry"></i>Geometry</span>
+              <span><i data-category="Project Phase"></i>Project phase</span>
+            </div>
+          </section>
+
+          <section class="relationship-panel-block relationship-detail-block">
+            <p class="relationship-kicker">Selected relationship details</p>
+            <div id="relationshipDetailScore" class="relationship-score">—</div>
+            <strong id="relationshipDetailCategory">Select a prototype</strong>
+            <p id="relationshipDetailText">Click a node to reveal its strongest direct connection and filter the network around it.</p>
+            <div id="relationshipNeighborList" class="relationship-neighbor-list"></div>
+          </section>
+
+          <section class="relationship-panel-block relationship-preview-block">
+            <p class="relationship-kicker">Selected prototype preview</p>
+            <div class="relationship-preview-media">
+              <img id="relationshipPreviewImage" alt="Selected prototype material preview">
+              <span id="relationshipPreviewFallback">3D</span>
+            </div>
+            <button id="openRelationshipPrototype" class="relationship-open-project" type="button">Open full prototype abstract</button>
+          </section>
+        </aside>
       </div>
     </section>
 
