@@ -1,0 +1,5 @@
+newmtl Material
+map_Kd textures/diffuse.jpg
+norm textures/normal.jpg
+map_ao textures/ao.jpg
+Pr 1.00
