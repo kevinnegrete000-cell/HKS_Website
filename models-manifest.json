@@ -1,0 +1,92 @@
+[
+  {
+    "source_zip": "3d print1_7593.zip",
+    "node_title": "3D Print Study 01",
+    "archive_code": "OBJ-7593-3DP-01",
+    "asset_folder": "assets/models/3d-print-01"
+  },
+  {
+    "source_zip": "3d print2_2710.zip",
+    "node_title": "3D Print Study 02",
+    "archive_code": "OBJ-2710-3DP-02",
+    "asset_folder": "assets/models/3d-print-02"
+  },
+  {
+    "source_zip": "3d Print3_7460.zip",
+    "node_title": "3D Print Study 03",
+    "archive_code": "OBJ-7460-3DP-03",
+    "asset_folder": "assets/models/3d-print-03"
+  },
+  {
+    "source_zip": "3d print4_0737.zip",
+    "node_title": "3D Print Study 04",
+    "archive_code": "OBJ-0737-3DP-04",
+    "asset_folder": "assets/models/3d-print-04"
+  },
+  {
+    "source_zip": "Big Projects1_0368.zip",
+    "node_title": "Large-Scale Prototype Study 01",
+    "archive_code": "OBJ-0368-BIG-01",
+    "asset_folder": "assets/models/big-projects-01"
+  },
+  {
+    "source_zip": "Column print1_4071.zip",
+    "node_title": "Column Print Study 01",
+    "archive_code": "OBJ-4071-COL-01",
+    "asset_folder": "assets/models/column-print-01"
+  },
+  {
+    "source_zip": "Column Print2_6628.zip",
+    "node_title": "Column Print Study 02",
+    "archive_code": "OBJ-6628-COL-02",
+    "asset_folder": "assets/models/column-print-02"
+  },
+  {
+    "source_zip": "Column print3_8171.zip",
+    "node_title": "Column Print Study 03",
+    "archive_code": "OBJ-8171-COL-03",
+    "asset_folder": "assets/models/column-print-03"
+  },
+  {
+    "source_zip": "Column print4_0858.zip",
+    "node_title": "Column Print Study 04",
+    "archive_code": "OBJ-0858-COL-04",
+    "asset_folder": "assets/models/column-print-04"
+  },
+  {
+    "source_zip": "Column print 5_9162.zip",
+    "node_title": "Column Print Study 05",
+    "archive_code": "OBJ-9162-COL-05",
+    "asset_folder": "assets/models/column-print-05"
+  },
+  {
+    "source_zip": "Concrete Print1_4815.zip",
+    "node_title": "Concrete Print Study 01",
+    "archive_code": "OBJ-4815-CON-01",
+    "asset_folder": "assets/models/concrete-print-01"
+  },
+  {
+    "source_zip": "Concrete Print2_8682.zip",
+    "node_title": "Concrete Print Study 02",
+    "archive_code": "OBJ-8682-CON-02",
+    "asset_folder": "assets/models/concrete-print-02"
+  },
+  {
+    "source_zip": "Concrete print3_3899.zip",
+    "node_title": "Concrete Print Study 03",
+    "archive_code": "OBJ-3899-CON-03",
+    "asset_folder": "assets/models/concrete-print-03"
+  },
+  {
+    "source_zip": "Window profile_4010.zip",
+    "node_title": "Window Profile Study 01",
+    "archive_code": "OBJ-4010-WIN-01",
+    "asset_folder": "assets/models/window-profile-01"
+  },
+  {
+    "source_zip": "Window profile2_6750.zip",
+    "node_title": "Window Profile Study 02",
+    "archive_code": "OBJ-6750-WIN-02",
+    "asset_folder": "assets/models/window-profile-02"
+  }
+]
