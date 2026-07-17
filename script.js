@@ -613,7 +613,10 @@ const state={
   lastY:0,
   filters:new Set(['Material','Fabrication','Typology','Geometry','Project Phase']),
   returnTransform:null,
-  orbitPaused:false
+  orbitPaused:false,
+  followSelected:false,
+  focusTargetX:0,
+  focusTargetY:0
 };
 
 const ORBIT_CENTER={x:-455,y:205};
@@ -808,6 +811,21 @@ function updateOrbitPositions(){
     }
   });
 
+  // Once a project panel is open, keep its selected node visually anchored
+  // while every orbit, sweep, relationship, and background node continues moving.
+  if(state.followSelected&&state.selected&&!canvasAnimationFrame){
+    const selectedItem=archiveItems.find(entry=>entry.id===state.selected);
+    const canvas=$('#canvas');
+    if(selectedItem&&canvas){
+      const rect=canvas.getBoundingClientRect();
+      const targetX=state.focusTargetX||Math.min(rect.width*.28,430);
+      const targetY=state.focusTargetY||rect.height*.53;
+      state.x=targetX-rect.width/2-selectedItem.x*state.scale;
+      state.y=targetY-rect.height/2-selectedItem.y*state.scale;
+      applyTransform();
+    }
+  }
+
   relationshipRefs.forEach(({relationship,path})=>{
     const source=archiveItems.find(item=>item.id===relationship.source);
     const target=archiveItems.find(item=>item.id===relationship.target);
@@ -862,7 +880,10 @@ function focusItem(id){
   if(!item)return;
   if(state.view!=='observatory')setView('observatory');
   state.returnTransform={scale:state.scale,x:state.x,y:state.y};
+  // Briefly hold the orbit only during the camera move. It resumes as soon
+  // as the information panel opens, so the archive remains alive behind it.
   state.orbitPaused=true;
+  state.followSelected=false;
   state.selected=id;
   $$('.node').forEach(node=>node.classList.toggle('selected',node.dataset.id===id));
   updateOrbitPositions();
@@ -872,9 +893,15 @@ function focusItem(id){
   const focusScale=item.model?1.02:.95;
   const targetX=Math.min(rect.width*.28,430);
   const targetY=rect.height*.53;
+  state.focusTargetX=targetX;
+  state.focusTargetY=targetY;
   const x=targetX-rect.width/2-item.x*focusScale;
   const y=targetY-rect.height/2-item.y*focusScale;
-  animateCanvasTo({scale:focusScale,x,y},700,()=>openDetail(id));
+  animateCanvasTo({scale:focusScale,x,y},700,()=>{
+    openDetail(id);
+    state.followSelected=true;
+    state.orbitPaused=false;
+  });
 }
 
 function metaRows(item){
@@ -955,6 +982,8 @@ function closeDetail(restore=true){
   const panel=$('#detailPanel');
   panel.classList.remove('open','model-mode');
   panel.setAttribute('aria-hidden','true');
+  state.followSelected=false;
+  state.orbitPaused=false;
   state.selected=null;
   $$('.node').forEach(node=>node.classList.remove('selected'));
   updateOrbitPositions();
@@ -962,10 +991,9 @@ function closeDetail(restore=true){
   if(restore&&state.returnTransform){
     const previous=state.returnTransform;
     state.returnTransform=null;
-    animateCanvasTo(previous,560,()=>{state.orbitPaused=false;});
+    animateCanvasTo(previous,560);
   }else{
     state.returnTransform=null;
-    state.orbitPaused=false;
   }
 }
 
@@ -1012,7 +1040,7 @@ async function initModelViewer(item){
 
   const scene=new THREE.Scene();
   scene.background=new THREE.Color(0xd5d7d4);
-  const camera=new THREE.PerspectiveCamera(34,1,.01,100);
+  const camera=new THREE.PerspectiveCamera(32,1,.01,100);
   camera.position.set(3.3,2.15,4.25);
   const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
@@ -1104,12 +1132,37 @@ async function initModelViewer(item){
     const [rx,ry,rz]=item.model.rotation||[0,0,0];
     object.rotation.set(rx,ry,rz);
     object.updateMatrixWorld(true);
-    const box=new THREE.Box3().setFromObject(object);
-    const center=box.getCenter(new THREE.Vector3());
-    const size=box.getSize(new THREE.Vector3());
-    object.position.sub(center);
-    object.scale.setScalar(2.7/Math.max(size.x,size.y,size.z));
+
+    // Normalize, then center after scaling. Centering after the scale prevents
+    // large source-coordinate offsets from making the object look tiny.
+    const sourceBox=new THREE.Box3().setFromObject(object);
+    const sourceSize=sourceBox.getSize(new THREE.Vector3());
+    const largestDimension=Math.max(sourceSize.x,sourceSize.y,sourceSize.z)||1;
+    object.scale.setScalar(3.55/largestDimension);
+    object.updateMatrixWorld(true);
+    const scaledBox=new THREE.Box3().setFromObject(object);
+    const scaledCenter=scaledBox.getCenter(new THREE.Vector3());
+    object.position.sub(scaledCenter);
+    object.updateMatrixWorld(true);
     scene.add(object);
+
+    // Fit the camera tightly to each object, regardless of whether the scan is
+    // tall, flat, or unusually wide. The 1.07 margin keeps it large but unclipped.
+    const fittedBox=new THREE.Box3().setFromObject(object);
+    const sphere=fittedBox.getBoundingSphere(new THREE.Sphere());
+    const verticalFov=THREE.MathUtils.degToRad(camera.fov);
+    const horizontalFov=2*Math.atan(Math.tan(verticalFov/2)*camera.aspect);
+    const verticalDistance=sphere.radius/Math.tan(verticalFov/2);
+    const horizontalDistance=sphere.radius/Math.tan(horizontalFov/2);
+    const cameraDistance=Math.max(verticalDistance,horizontalDistance)*1.07;
+    const cameraDirection=new THREE.Vector3(3.3,2.15,4.25).normalize();
+    camera.position.copy(cameraDirection.multiplyScalar(cameraDistance));
+    camera.near=Math.max(.01,cameraDistance/100);
+    camera.far=Math.max(100,cameraDistance*100);
+    camera.updateProjectionMatrix();
+    controls.minDistance=Math.max(.35,cameraDistance*.48);
+    controls.maxDistance=Math.max(8,cameraDistance*3.2);
+    floor.position.y=fittedBox.min.y-.045;
     controls.target.set(0,0,0);
     controls.update();
     if(status){

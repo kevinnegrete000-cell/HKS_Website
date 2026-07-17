@@ -458,3 +458,46 @@ body::before{
 .detail-panel.model-mode{width:min(680px,calc(100vw - 36px))}
 .model-stage-shell{height:250px}
 @media(max-width:760px){.model-stage-shell{height:280px}}
+
+
+/* ============================================================
+   OPEN PROJECT — LIVE BACKGROUND + LARGE 3D VIEWER
+   ============================================================ */
+@media (min-width:901px){
+  .detail-panel.model-mode{
+    width:min(960px,calc(100vw - 64px));
+  }
+  .detail-panel.model-mode .detail-content-grid{
+    grid-template-columns:minmax(0,1.58fr) minmax(270px,.76fr);
+    gap:18px;
+    align-items:start;
+  }
+  .detail-panel.model-mode .model-stage-shell{
+    height:clamp(410px,54vh,570px);
+  }
+  .detail-panel.model-mode .model-thumbnails{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:7px;
+  }
+  .detail-panel.model-mode .model-thumbnails img,
+  .detail-panel.model-mode .texture-placeholder{
+    height:86px;
+  }
+  .detail-panel.model-mode .detail-copy{
+    font-size:13px;
+    line-height:1.38;
+  }
+  .detail-panel.model-mode .meta-row{
+    font-size:11px;
+    padding:5px 0;
+  }
+}
+
+@media (min-width:761px) and (max-width:900px){
+  .detail-panel.model-mode{
+    width:calc(100vw - 24px);
+  }
+  .detail-panel.model-mode .model-stage-shell{
+    height:390px;
+  }
+}
