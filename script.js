@@ -1304,11 +1304,11 @@ function relationshipCategoryColor(category){
 
 function relationshipLayout(){
   const definitions={
-    '3D Print':{center:[-6.2,2.9,-1.8],direction:[1.55,-.12,.72]},
-    'Column Print':{center:[-1.2,.65,.65],direction:[1.6,.08,-.55]},
-    'Concrete Print':{center:[4.3,-2.15,-.15],direction:[1.65,.16,.7]},
-    'Window Profile':{center:[6.6,2.45,-1.25],direction:[1.6,-.2,.9]},
-    'Large Scale':{center:[-.1,-4.1,2.3],direction:[1,0,0]}
+    '3D Print':{center:[-6.4,4.15,-2.8],direction:[1.55,.16,.72]},
+    'Column Print':{center:[-1.45,4.75,.45],direction:[1.42,-.05,-.7]},
+    'Concrete Print':{center:[4.45,3.8,.95],direction:[1.5,.14,.72]},
+    'Window Profile':{center:[6.5,5.25,-2.35],direction:[1.45,-.08,.9]},
+    'Large Scale':{center:[.1,6.0,3.1],direction:[1,0,0]}
   };
   const groups=new Map();
   archiveItems.forEach(item=>{
@@ -1323,8 +1323,8 @@ function relationshipLayout(){
       const offset=index-(items.length-1)/2;
       positions.set(item.id,new THREE.Vector3(
         definition.center[0]+definition.direction[0]*offset,
-        definition.center[1]+definition.direction[1]*offset+Math.sin(index*1.7)*.34,
-        definition.center[2]+definition.direction[2]*offset+Math.cos(index*1.31)*.42
+        definition.center[1]+definition.direction[1]*offset+Math.sin(index*1.47+family.length)*.36,
+        definition.center[2]+definition.direction[2]*offset+Math.cos(index*1.19+family.length)*.48
       ));
     });
   });
@@ -1352,55 +1352,283 @@ function makeRelationshipLabel(text,subtext=''){
   return sprite;
 }
 
-function relationshipCurveBetween(source,target,index,strength){
-  const delta=target.clone().sub(source);
-  const normal=new THREE.Vector3(-delta.y,delta.x,1.5).normalize();
-  const lift=1.25+strength*1.6+(index%3)*.28;
-  const controlA=source.clone().lerp(target,.32).addScaledVector(normal,lift);
-  const controlB=source.clone().lerp(target,.68).addScaledVector(normal,lift*.82);
-  return new THREE.CubicBezierCurve3(source,controlA,controlB,target);
-}
-
 function makeNetworkNode(item,position,index){
   const group=new THREE.Group();
   group.position.copy(position);
   group.userData.itemId=item.id;
 
-  const geometry=new THREE.BoxGeometry(1.02,.64,.2);
-  const material=new THREE.MeshStandardMaterial({
-    color:index%3===0?0xd8d9d5:0xaeb2b4,
-    roughness:.74,
-    metalness:.06,
-    emissive:0x101214,
+  const supportHeight=4.8+(index%5)*.42;
+  const supportGeometry=new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(0,.22,0),
+    new THREE.Vector3(0,supportHeight,0)
+  ]);
+  const supportMaterial=new THREE.LineBasicMaterial({
+    color:0xa5a6a0,
     transparent:true,
-    opacity:.94
+    opacity:.2,
+    depthWrite:false
   });
-  const mesh=new THREE.Mesh(geometry,material);
-  mesh.castShadow=false;
+  const support=new THREE.Line(supportGeometry,supportMaterial);
+  group.add(support);
+
+  const weightMaterial=new THREE.MeshStandardMaterial({
+    color:index%4===0?0xc3b89f:0xa8aaa5,
+    roughness:.82,
+    metalness:.02,
+    emissive:0x111311,
+    transparent:true,
+    opacity:.95
+  });
+  const mesh=new THREE.Mesh(new THREE.SphereGeometry(.29,18,14),weightMaterial);
+  mesh.scale.set(.72,1.28,.72);
   mesh.userData.itemId=item.id;
   group.add(mesh);
 
-  const edgeGeometry=new THREE.EdgesGeometry(geometry);
-  const edgeMaterial=new THREE.LineBasicMaterial({color:0xf1f1ed,transparent:true,opacity:.46});
-  const edges=new THREE.LineSegments(edgeGeometry,edgeMaterial);
+  const cap=new THREE.Mesh(
+    new THREE.ConeGeometry(.12,.28,10),
+    new THREE.MeshStandardMaterial({color:0x777872,roughness:.86,metalness:.02,transparent:true,opacity:.9})
+  );
+  cap.position.y=.47;
+  cap.userData.itemId=item.id;
+  group.add(cap);
+
+  const edgeMaterial=new THREE.MeshBasicMaterial({color:0xedece5,transparent:true,opacity:.38,depthWrite:false});
+  const edges=new THREE.Mesh(new THREE.TorusGeometry(.37,.012,6,36),edgeMaterial);
+  edges.rotation.x=Math.PI/2;
   edges.userData.itemId=item.id;
   group.add(edges);
 
   const marker=new THREE.Mesh(
-    new THREE.OctahedronGeometry(.15,0),
-    new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.88})
+    new THREE.SphereGeometry(.065,10,8),
+    new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.9,depthWrite:false})
   );
-  marker.position.set(.31,.07,.18);
+  marker.position.set(0,-.31,.02);
   marker.userData.itemId=item.id;
   group.add(marker);
 
   const label=makeRelationshipLabel(item.archiveCode,`${relationshipFamily(item)} · ${item.year}`);
-  label.position.set(1.85,-.02,.05);
+  label.position.set(1.82,-.03,.04);
+  label.scale.multiplyScalar(.9);
   label.userData.itemId=item.id;
   group.add(label);
 
-  group.userData={itemId:item.id,mesh,edges,marker,label,baseScale:1};
+  group.userData={
+    itemId:item.id,
+    mesh,
+    edges,
+    marker,
+    label,
+    support,
+    cap,
+    baseScale:1,
+    swayPhase:index*.73
+  };
   return group;
+}
+
+function makeHangingConnection(relationship,source,target,index){
+  const distance=Math.max(.001,source.distanceTo(target));
+  const segmentCount=Math.max(22,Math.min(42,Math.round(distance*2.65)+13));
+  const extraLength=.14+(1-relationship.strength)*.07+(index%4)*.008;
+  const restLength=distance*(1+extraLength)/segmentCount;
+  const direction=target.clone().sub(source);
+  const sideways=new THREE.Vector3().crossVectors(direction,new THREE.Vector3(0,1,0));
+  if(sideways.lengthSq()<.001)sideways.set(0,0,1);
+  sideways.normalize();
+  const positions=[];
+  const previous=[];
+  const entryLift=1.1+distance*.065+(index%3)*.24;
+  const sideOffset=((index%2===0)?1:-1)*(.12+(index%5)*.035);
+
+  for(let i=0;i<=segmentCount;i++){
+    const t=i/segmentCount;
+    const point=source.clone().lerp(target,t);
+    if(prefersReducedMotion){
+      point.y-=Math.sin(Math.PI*t)*(distance*.17+1.1);
+    }else{
+      point.y+=Math.sin(Math.PI*t)*entryLift;
+      point.addScaledVector(sideways,Math.sin(Math.PI*t)*sideOffset);
+    }
+    positions.push(point);
+    const oldPoint=point.clone();
+    if(!prefersReducedMotion&&i>0&&i<segmentCount){
+      oldPoint.y+=.16+Math.sin(i*.81+index)*.055;
+      oldPoint.addScaledVector(sideways,Math.cos(i*.47+index)*.025);
+    }
+    previous.push(oldPoint);
+  }
+
+  positions[0].copy(source);
+  positions[segmentCount].copy(target);
+  previous[0].copy(source);
+  previous[segmentCount].copy(target);
+
+  const positionArray=new Float32Array((segmentCount+1)*3);
+  const geometry=new THREE.BufferGeometry();
+  const attribute=new THREE.BufferAttribute(positionArray,3);
+  attribute.setUsage(THREE.DynamicDrawUsage);
+  geometry.setAttribute('position',attribute);
+
+  const categoryColor=relationshipCategoryColor(relationship.category);
+  const haloMaterial=new THREE.LineBasicMaterial({
+    color:categoryColor,
+    transparent:true,
+    opacity:.08,
+    depthWrite:false,
+    blending:THREE.AdditiveBlending
+  });
+  const lineMaterial=new THREE.LineBasicMaterial({
+    color:categoryColor,
+    transparent:true,
+    opacity:.34,
+    depthWrite:false
+  });
+  const halo=new THREE.Line(geometry,haloMaterial);
+  const line=new THREE.Line(geometry,lineMaterial);
+  halo.frustumCulled=false;
+  line.frustumCulled=false;
+
+  const beadIndices=[];
+  for(let i=2;i<segmentCount;i+=4)beadIndices.push(i);
+  const beadMaterial=new THREE.MeshBasicMaterial({color:categoryColor,transparent:true,opacity:.38,depthWrite:false});
+  const beads=new THREE.InstancedMesh(new THREE.SphereGeometry(.045,7,6),beadMaterial,beadIndices.length);
+  beads.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  beads.frustumCulled=false;
+
+  const signal=new THREE.Mesh(
+    new THREE.SphereGeometry(.075+relationship.strength*.025,10,8),
+    new THREE.MeshBasicMaterial({color:categoryColor,transparent:true,opacity:.8,depthWrite:false})
+  );
+  const label=makeRelationshipLabel(relationship.category,`${Math.round(relationship.strength*100)}% relationship`);
+  label.scale.multiplyScalar(.52);
+  label.material.opacity=.38;
+  label.visible=relationship.strength>=.72;
+
+  return {
+    relationship,
+    sourcePosition:source,
+    targetPosition:target,
+    positions,
+    previous,
+    segmentCount,
+    restLength,
+    sideways,
+    geometry,
+    attribute,
+    halo,
+    line,
+    beads,
+    beadIndices,
+    signal,
+    label,
+    phase:(index*.137)%1,
+    seed:index*1.713,
+    direct:false
+  };
+}
+
+const ropeDelta={x:0,y:0,z:0};
+const ropeMatrixHolder={matrix:null};
+
+function updateHangingConnectionGeometry(connection,elapsed){
+  const array=connection.attribute.array;
+  connection.positions.forEach((point,index)=>{
+    const base=index*3;
+    array[base]=point.x;
+    array[base+1]=point.y;
+    array[base+2]=point.z;
+  });
+  connection.attribute.needsUpdate=true;
+
+  if(!ropeMatrixHolder.matrix)ropeMatrixHolder.matrix=new THREE.Matrix4();
+  connection.beadIndices.forEach((pointIndex,instanceIndex)=>{
+    ropeMatrixHolder.matrix.makeTranslation(
+      connection.positions[pointIndex].x,
+      connection.positions[pointIndex].y,
+      connection.positions[pointIndex].z
+    );
+    connection.beads.setMatrixAt(instanceIndex,ropeMatrixHolder.matrix);
+  });
+  connection.beads.instanceMatrix.needsUpdate=true;
+
+  const signalT=(elapsed*(.045+connection.relationship.strength*.035)+connection.phase)%1;
+  const scaled=signalT*connection.segmentCount;
+  const low=Math.min(connection.segmentCount-1,Math.floor(scaled));
+  const alpha=scaled-low;
+  connection.signal.position.copy(connection.positions[low]).lerp(connection.positions[low+1],alpha);
+
+  const midpoint=connection.positions[Math.floor(connection.segmentCount*.5)];
+  connection.label.position.copy(midpoint).add(new THREE.Vector3(0,.34,0));
+}
+
+function simulateHangingConnection(connection,dt,gravity,elapsed){
+  if(prefersReducedMotion){
+    updateHangingConnectionGeometry(connection,elapsed);
+    return;
+  }
+  const substeps=2;
+  const step=Math.min(dt,.033)/substeps;
+  const stepSquared=step*step;
+  const damping=.986;
+  const points=connection.positions;
+  const previous=connection.previous;
+  const last=connection.segmentCount;
+
+  for(let substep=0;substep<substeps;substep++){
+    for(let i=1;i<last;i++){
+      const point=points[i];
+      const old=previous[i];
+      const velocityX=(point.x-old.x)*damping;
+      const velocityY=(point.y-old.y)*damping;
+      const velocityZ=(point.z-old.z)*damping;
+      old.copy(point);
+      const flutter=Math.sin(elapsed*.82+i*.57+connection.seed)*.12;
+      point.x+=velocityX+(gravity.x+connection.sideways.x*flutter)*stepSquared;
+      point.y+=velocityY+gravity.y*stepSquared;
+      point.z+=velocityZ+(gravity.z+connection.sideways.z*flutter)*stepSquared;
+    }
+
+    for(let iteration=0;iteration<6;iteration++){
+      points[0].copy(connection.sourcePosition);
+      points[last].copy(connection.targetPosition);
+      for(let i=0;i<last;i++){
+        const a=points[i];
+        const b=points[i+1];
+        ropeDelta.x=b.x-a.x;
+        ropeDelta.y=b.y-a.y;
+        ropeDelta.z=b.z-a.z;
+        const distance=Math.hypot(ropeDelta.x,ropeDelta.y,ropeDelta.z)||.0001;
+        const correction=(distance-connection.restLength)/distance;
+        if(i===0){
+          b.x-=ropeDelta.x*correction;
+          b.y-=ropeDelta.y*correction;
+          b.z-=ropeDelta.z*correction;
+        }else if(i+1===last){
+          a.x+=ropeDelta.x*correction;
+          a.y+=ropeDelta.y*correction;
+          a.z+=ropeDelta.z*correction;
+        }else{
+          const half=correction*.5;
+          a.x+=ropeDelta.x*half;
+          a.y+=ropeDelta.y*half;
+          a.z+=ropeDelta.z*half;
+          b.x-=ropeDelta.x*half;
+          b.y-=ropeDelta.y*half;
+          b.z-=ropeDelta.z*half;
+        }
+      }
+      for(let i=2;i<last-1;i++){
+        const point=points[i];
+        const targetX=(points[i-1].x+points[i+1].x)*.5;
+        const targetY=(points[i-1].y+points[i+1].y)*.5;
+        const targetZ=(points[i-1].z+points[i+1].z)*.5;
+        point.x+=(targetX-point.x)*.012;
+        point.y+=(targetY-point.y)*.012;
+        point.z+=(targetZ-point.z)*.012;
+      }
+    }
+  }
+  updateHangingConnectionGeometry(connection,elapsed);
 }
 
 function updateRelationshipPanels(id){
@@ -1471,27 +1699,46 @@ function updateRelationshipNetworkVisibility(){
   relationshipViewer.connections.forEach(connection=>{
     const key=`${connection.relationship.source}|${connection.relationship.target}|${connection.relationship.category}`;
     const shown=visibleKeys.has(key);
+    const direct=connection.relationship.source===relationshipState.selectedId||connection.relationship.target===relationshipState.selectedId;
+    connection.direct=shown&&direct;
     connection.line.visible=shown;
-    connection.particle.visible=shown;
-    connection.label.visible=shown&&connection.relationship.strength>=.72;
+    connection.halo.visible=shown;
+    connection.beads.visible=shown;
+    connection.signal.visible=shown&&direct;
+    connection.label.visible=shown&&(direct||connection.relationship.strength>=.75);
     if(shown){
-      const direct=connection.relationship.source===relationshipState.selectedId||connection.relationship.target===relationshipState.selectedId;
-      connection.line.material.opacity=direct?.88:.24+connection.relationship.strength*.28;
-      connection.particle.material.opacity=direct?1:.72;
-      connection.label.material.opacity=direct?.92:.46;
+      const color=direct?0xf3f1e8:relationshipCategoryColor(connection.relationship.category);
+      connection.line.material.color.setHex(color);
+      connection.halo.material.color.setHex(color);
+      connection.beads.material.color.setHex(color);
+      connection.signal.material.color.setHex(color);
+      connection.line.material.opacity=direct?.96:.2+connection.relationship.strength*.22;
+      connection.halo.material.opacity=direct?.23:.045;
+      connection.beads.material.opacity=direct?.8:.2;
+      connection.signal.material.opacity=direct?1:.65;
+      connection.label.material.opacity=direct?.94:.36;
     }
+  });
+
+  const connectedToSelected=new Set();
+  visible.forEach(relationship=>{
+    if(relationship.source===relationshipState.selectedId)connectedToSelected.add(relationship.target);
+    if(relationship.target===relationshipState.selectedId)connectedToSelected.add(relationship.source);
   });
 
   relationshipViewer.nodes.forEach((group,id)=>{
     const selected=id===relationshipState.selectedId;
+    const connected=connectedToSelected.has(id);
     const active=relationshipState.mode==='all'||involved.has(id)||selected;
     group.visible=true;
-    group.userData.mesh.material.opacity=active?.94:.13;
-    group.userData.mesh.material.emissive.setHex(selected?0x526477:0x101214);
-    group.userData.edges.material.opacity=selected?.95:(active?.42:.08);
-    group.userData.marker.material.opacity=selected?1:(active?.8:.1);
-    group.userData.label.material.opacity=selected?1:(active?.78:.1);
-    group.scale.setScalar(selected?1.38:1);
+    group.userData.mesh.material.opacity=selected?1:(connected?.96:(active?.78:.12));
+    group.userData.mesh.material.emissive.setHex(selected?0x5d5546:(connected?0x282a27:0x111311));
+    group.userData.edges.material.opacity=selected?1:(connected?.72:(active?.28:.06));
+    group.userData.marker.material.opacity=selected?1:(connected?.92:(active?.58:.08));
+    group.userData.label.material.opacity=selected?1:(connected?.9:(active?.58:.08));
+    group.userData.support.material.opacity=selected?.52:(connected?.34:(active?.16:.04));
+    group.userData.cap.material.opacity=selected?1:(active?.76:.1);
+    group.scale.setScalar(selected?1.48:(connected?1.16:1));
   });
 }
 
@@ -1505,7 +1752,7 @@ async function initRelationshipNetwork(){
     if(status){status.textContent='';status.classList.add('loaded');}
     return;
   }
-  if(status){status.textContent='Loading relationship field…';status.classList.remove('loaded','error');}
+  if(status){status.textContent='Releasing suspended relationship field…';status.classList.remove('loaded','error');}
   destroyRelationshipNetwork();
   try{await ensureThree();}
   catch(error){
@@ -1516,10 +1763,10 @@ async function initRelationshipNetwork(){
   if(state.view!=='relationships'||!document.body.contains(host))return;
 
   const scene=new THREE.Scene();
-  scene.background=new THREE.Color(0x090b0c);
-  scene.fog=new THREE.FogExp2(0x090b0c,.026);
-  const camera=new THREE.PerspectiveCamera(44,1,.1,150);
-  camera.position.set(1.2,5.8,19.5);
+  scene.background=new THREE.Color(0x080a09);
+  scene.fog=new THREE.FogExp2(0x080a09,.023);
+  const camera=new THREE.PerspectiveCamera(43,1,.1,160);
+  camera.position.set(.7,7.1,22.8);
   const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.8));
   renderer.outputColorSpace=THREE.SRGBColorSpace;
@@ -1527,17 +1774,29 @@ async function initRelationshipNetwork(){
 
   const controls=new OrbitControls(camera,renderer.domElement);
   controls.enableDamping=true;
-  controls.dampingFactor=.055;
+  controls.dampingFactor=.06;
   controls.enablePan=true;
   controls.screenSpacePanning=true;
-  controls.minDistance=6;
-  controls.maxDistance=42;
-  controls.target.set(.4,-.2,0);
+  controls.minDistance=7;
+  controls.maxDistance=46;
+  controls.target.set(.2,1.65,0);
   controls.update();
 
-  scene.add(new THREE.HemisphereLight(0xd8e0e8,0x101214,1.8));
-  const keyLight=new THREE.DirectionalLight(0xffffff,2.1);keyLight.position.set(6,10,9);scene.add(keyLight);
-  const rimLight=new THREE.DirectionalLight(0x879db7,1.4);rimLight.position.set(-10,2,-7);scene.add(rimLight);
+  scene.add(new THREE.HemisphereLight(0xd7d5ca,0x090b0a,1.45));
+  const keyLight=new THREE.DirectionalLight(0xf4efe1,1.65);keyLight.position.set(5,12,10);scene.add(keyLight);
+  const rimLight=new THREE.DirectionalLight(0x8190a1,.9);rimLight.position.set(-10,4,-8);scene.add(rimLight);
+
+  const overheadGeometry=new THREE.BufferGeometry();
+  const overheadPositions=[];
+  for(let x=-11;x<=11;x+=2.2){
+    overheadPositions.push(x,9.8,-6,x,9.8,6);
+  }
+  for(let z=-6;z<=6;z+=2){
+    overheadPositions.push(-11,9.8,z,11,9.8,z);
+  }
+  overheadGeometry.setAttribute('position',new THREE.Float32BufferAttribute(overheadPositions,3));
+  const overheadFrame=new THREE.LineSegments(overheadGeometry,new THREE.LineBasicMaterial({color:0x9b9a91,transparent:true,opacity:.075,depthWrite:false}));
+  scene.add(overheadFrame);
 
   const positions=relationshipLayout();
   const nodeMap=new Map();
@@ -1545,7 +1804,7 @@ async function initRelationshipNetwork(){
   archiveItems.forEach((item,index)=>{
     const node=makeNetworkNode(item,positions.get(item.id),index);
     nodeMap.set(item.id,node);
-    node.traverse(child=>{if(child.isMesh)pickables.push(child);});
+    node.traverse(child=>{if(child.isMesh&&child.userData?.itemId)pickables.push(child);});
     scene.add(node);
   });
 
@@ -1553,43 +1812,27 @@ async function initRelationshipNetwork(){
   relationships.forEach((relationship,index)=>{
     const source=positions.get(relationship.source),target=positions.get(relationship.target);
     if(!source||!target)return;
-    const curve=relationshipCurveBetween(source,target,index,relationship.strength);
-    const points=curve.getPoints(80);
-    const geometry=new THREE.BufferGeometry().setFromPoints(points);
-    const material=new THREE.LineBasicMaterial({
-      color:relationshipCategoryColor(relationship.category),
-      transparent:true,
-      opacity:.26+relationship.strength*.28,
-      depthWrite:false
-    });
-    const line=new THREE.Line(geometry,material);
-    scene.add(line);
-
-    const particle=new THREE.Mesh(
-      new THREE.SphereGeometry(.055+relationship.strength*.035,8,8),
-      new THREE.MeshBasicMaterial({color:relationshipCategoryColor(relationship.category),transparent:true,opacity:.82})
-    );
-    scene.add(particle);
-
-    const label=makeRelationshipLabel(relationship.category,`${Math.round(relationship.strength*100)}% relationship`);
-    label.scale.multiplyScalar(.58);
-    label.position.copy(curve.getPoint(.53)).add(new THREE.Vector3(0,.32,0));
-    label.material.opacity=.46;
-    label.visible=relationship.strength>=.72;
-    scene.add(label);
-    connections.push({relationship,curve,line,particle,label,phase:(index*.137)%1});
+    const connection=makeHangingConnection(relationship,source,target,index);
+    scene.add(connection.halo,connection.line,connection.beads,connection.signal,connection.label);
+    connections.push(connection);
   });
 
   const dustGeometry=new THREE.BufferGeometry();
   const dustPositions=[];
-  for(let i=0;i<330;i++)dustPositions.push((Math.random()-.5)*36,(Math.random()-.5)*20,(Math.random()-.5)*18);
+  for(let i=0;i<420;i++)dustPositions.push((Math.random()-.5)*38,(Math.random()-.5)*24,(Math.random()-.5)*20);
   dustGeometry.setAttribute('position',new THREE.Float32BufferAttribute(dustPositions,3));
-  const dust=new THREE.Points(dustGeometry,new THREE.PointsMaterial({color:0xbcc3c7,size:.018,transparent:true,opacity:.32,depthWrite:false}));
+  const dust=new THREE.Points(dustGeometry,new THREE.PointsMaterial({color:0xb7b5aa,size:.016,transparent:true,opacity:.25,depthWrite:false}));
   scene.add(dust);
 
   const raycaster=new THREE.Raycaster();
   const pointer=new THREE.Vector2();
   const tooltip=$('#relationshipNetworkTooltip');
+  const inertialForce=new THREE.Vector3();
+  const rightVector=new THREE.Vector3();
+  const upVector=new THREE.Vector3();
+  const forwardVector=new THREE.Vector3();
+  const pointerPhysics={active:false,x:0,y:0};
+
   const setPointer=event=>{
     const rect=renderer.domElement.getBoundingClientRect();
     pointer.x=((event.clientX-rect.left)/rect.width)*2-1;
@@ -1600,7 +1843,27 @@ async function initRelationshipNetwork(){
     while(current){if(current.userData?.itemId)return current.userData.itemId;current=current.parent;}
     return null;
   };
+  const disturbField=(dx,dy)=>{
+    rightVector.set(1,0,0).applyQuaternion(camera.quaternion);
+    upVector.set(0,1,0).applyQuaternion(camera.quaternion);
+    inertialForce.addScaledVector(rightVector,-dx*.055);
+    inertialForce.addScaledVector(upVector,dy*.042);
+    if(inertialForce.length()>11)inertialForce.setLength(11);
+  };
+  const onPointerDown=event=>{
+    pointerPhysics.active=true;
+    pointerPhysics.x=event.clientX;
+    pointerPhysics.y=event.clientY;
+  };
+  const onPointerUp=()=>{pointerPhysics.active=false;};
   const onPointerMove=event=>{
+    if(pointerPhysics.active){
+      const dx=event.clientX-pointerPhysics.x;
+      const dy=event.clientY-pointerPhysics.y;
+      pointerPhysics.x=event.clientX;
+      pointerPhysics.y=event.clientY;
+      disturbField(dx,dy);
+    }
     setPointer(event);raycaster.setFromCamera(pointer,camera);
     const hit=raycaster.intersectObjects(pickables,false)[0];
     const id=hit?findItemId(hit.object):null;
@@ -1616,6 +1879,11 @@ async function initRelationshipNetwork(){
       }else{tooltip.classList.remove('visible');tooltip.setAttribute('aria-hidden','true');}
     }
   };
+  const onWheel=event=>{
+    camera.getWorldDirection(forwardVector);
+    inertialForce.addScaledVector(forwardVector,Math.sign(event.deltaY)*1.35);
+    if(inertialForce.length()>11)inertialForce.setLength(11);
+  };
   const onClick=event=>{
     setPointer(event);raycaster.setFromCamera(pointer,camera);
     const hit=raycaster.intersectObjects(pickables,false)[0];
@@ -1628,8 +1896,16 @@ async function initRelationshipNetwork(){
     const id=hit?findItemId(hit.object):null;
     if(id)focusItem(id);
   };
+  const onPointerLeave=()=>{
+    pointerPhysics.active=false;
+    tooltip?.classList.remove('visible');
+  };
+  renderer.domElement.addEventListener('pointerdown',onPointerDown);
+  renderer.domElement.addEventListener('pointerup',onPointerUp);
+  renderer.domElement.addEventListener('pointercancel',onPointerUp);
   renderer.domElement.addEventListener('pointermove',onPointerMove);
-  renderer.domElement.addEventListener('pointerleave',()=>tooltip?.classList.remove('visible'));
+  renderer.domElement.addEventListener('pointerleave',onPointerLeave);
+  renderer.domElement.addEventListener('wheel',onWheel,{passive:true});
   renderer.domElement.addEventListener('click',onClick);
   renderer.domElement.addEventListener('dblclick',onDoubleClick);
 
@@ -1641,27 +1917,35 @@ async function initRelationshipNetwork(){
 
   relationshipViewer={
     host,scene,camera,renderer,controls,nodes:nodeMap,connections,resizeObserver,
-    resize,animationId:null,elapsed:0,focusTarget:null,
-    listeners:{onPointerMove,onClick,onDoubleClick}
+    resize,animationId:null,elapsed:0,focusTarget:null,inertialForce,
+    listeners:{onPointerDown,onPointerUp,onPointerMove,onPointerLeave,onWheel,onClick,onDoubleClick}
   };
   updateRelationshipPanels(relationshipState.selectedId);
   updateRelationshipNetworkVisibility();
-  if(status){status.classList.add('loaded');setTimeout(()=>status.textContent='',450);}
+  if(status){setTimeout(()=>{if(status){status.classList.add('loaded');status.textContent='';}},1250);}
 
   let last=performance.now();
+  const gravity=new THREE.Vector3();
   const animate=now=>{
     if(!relationshipViewer||relationshipViewer.renderer!==renderer)return;
     const delta=Math.min((now-last)/1000,.05);last=now;
     relationshipViewer.elapsed+=delta;
-    connections.forEach((connection,index)=>{
-      const t=(relationshipViewer.elapsed*(.055+connection.relationship.strength*.035)+connection.phase)%1;
-      connection.particle.position.copy(connection.curve.getPoint(t));
-      connection.line.material.opacity*=1;
+
+    inertialForce.multiplyScalar(Math.exp(-delta*1.9));
+    gravity.set(inertialForce.x,-7.4+inertialForce.y*.28,inertialForce.z);
+    connections.forEach(connection=>simulateHangingConnection(connection,delta,gravity,relationshipViewer.elapsed));
+
+    let nodeCounter=0;
+    nodeMap.forEach(node=>{
+      const targetTiltX=Math.max(-.18,Math.min(.18,inertialForce.z*.012));
+      const targetTiltZ=Math.max(-.2,Math.min(.2,-inertialForce.x*.014));
+      node.rotation.x+=(targetTiltX-node.rotation.x)*.08;
+      node.rotation.z+=(targetTiltZ-node.rotation.z)*.08;
+      node.userData.mesh.rotation.y=Math.sin(relationshipViewer.elapsed*.55+node.userData.swayPhase)*.06;
+      node.userData.label.position.y=-.03+Math.sin(relationshipViewer.elapsed*.4+nodeCounter)*.025;
+      nodeCounter+=1;
     });
-    nodeMap.forEach((node,index)=>{
-      node.rotation.y=Math.sin(relationshipViewer.elapsed*.28+index*.8)*.07;
-      node.position.y+=(Math.sin(relationshipViewer.elapsed*.55+index)-Math.sin((relationshipViewer.elapsed-delta)*.55+index))*.035;
-    });
+
     if(relationshipViewer.focusTarget){
       controls.target.lerp(relationshipViewer.focusTarget,.075);
       if(controls.target.distanceTo(relationshipViewer.focusTarget)<.02)relationshipViewer.focusTarget=null;
@@ -1674,8 +1958,9 @@ async function initRelationshipNetwork(){
 
 function resetRelationshipCamera(){
   if(!relationshipViewer)return;
-  relationshipViewer.camera.position.set(1.2,5.8,19.5);
-  relationshipViewer.controls.target.set(.4,-.2,0);
+  relationshipViewer.camera.position.set(.7,7.1,22.8);
+  relationshipViewer.controls.target.set(.2,1.65,0);
+  relationshipViewer.inertialForce?.set(0,0,0);
   relationshipViewer.controls.update();
 }
 
@@ -1684,6 +1969,16 @@ function destroyRelationshipNetwork(){
   cancelAnimationFrame(relationshipViewer.animationId);
   relationshipViewer.resizeObserver?.disconnect();
   relationshipViewer.controls?.dispose();
+  const canvas=relationshipViewer.renderer?.domElement;
+  const listeners=relationshipViewer.listeners||{};
+  canvas?.removeEventListener('pointerdown',listeners.onPointerDown);
+  canvas?.removeEventListener('pointerup',listeners.onPointerUp);
+  canvas?.removeEventListener('pointercancel',listeners.onPointerUp);
+  canvas?.removeEventListener('pointermove',listeners.onPointerMove);
+  canvas?.removeEventListener('pointerleave',listeners.onPointerLeave);
+  canvas?.removeEventListener('wheel',listeners.onWheel);
+  canvas?.removeEventListener('click',listeners.onClick);
+  canvas?.removeEventListener('dblclick',listeners.onDoubleClick);
   relationshipViewer.scene?.traverse(object=>{
     object.geometry?.dispose?.();
     const materials=Array.isArray(object.material)?object.material:[object.material];
