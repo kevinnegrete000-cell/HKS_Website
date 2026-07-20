@@ -12,12 +12,19 @@
     <a class="brand nav-btn active" href="#" data-view="observatory">Observatory</a>
     <nav class="nav" aria-label="Main navigation">
       <button class="nav-btn" data-view="timeline">Timeline</button>
+      <button class="nav-btn" data-view="atlas">Atlas</button>
     </nav>
     <div class="header-actions">
       <button id="searchButton" class="nav-btn" aria-label="Search archive">Search</button>
       <button class="nav-btn" data-view="about">About</button>
     </div>
   </header>
+
+  <div id="atlasTransition" class="atlas-transition" aria-hidden="true">
+    <div id="atlasTransitionField" class="atlas-transition-field"></div>
+    <div class="atlas-transition-globe" aria-hidden="true"></div>
+    <div class="atlas-transition-caption"><span>Reprojecting archive</span><small>constellation → geographic field</small></div>
+  </div>
 
   <main id="app">
     <section id="observatory" class="view active-view" aria-label="Archive observatory">
@@ -42,6 +49,31 @@
         <button id="zoomOut" aria-label="Zoom out">−</button>
         <button id="zoomReset" aria-label="Reset view">↺</button>
       </div>
+    </section>
+
+
+    <section id="atlas" class="view atlas-view" aria-label="Interactive geographic project atlas">
+      <div id="atlasStage" class="atlas-stage" role="application" aria-label="Interactive 3D world atlas"></div>
+      <div class="atlas-heading">
+        <p class="eyebrow">Geographic archive</p>
+        <h1>Atlas</h1>
+        <p>Projects positioned across a living world field.</p>
+      </div>
+      <div id="atlasStatus" class="atlas-status">Assembling geographic field…</div>
+      <div id="atlasTooltip" class="atlas-tooltip" aria-hidden="true"></div>
+      <div class="atlas-location-card">
+        <p class="atlas-card-kicker">Selected location</p>
+        <strong id="atlasSelectedCity">Global archive</strong>
+        <span id="atlasSelectedProject">Select a project marker</span>
+        <small id="atlasSelectedCoordinates">Drag to orbit · Scroll to zoom</small>
+      </div>
+      <div class="atlas-legend">
+        <span><i></i>Project location</span>
+        <span><i class="arc"></i>Archive relationship</span>
+        <small>Prototype coordinates are provisional and can be replaced with verified project locations.</small>
+      </div>
+      <button id="atlasResetView" class="atlas-reset-view" type="button">Reset globe</button>
+      <div class="atlas-hint">Drag to orbit · Right-drag to pan · Scroll to zoom · Click a marker to open its object</div>
     </section>
 
     <section id="relationships" class="view relationship-view" aria-label="Prototype relationship network">
@@ -159,6 +191,6 @@
       }
     }
   </script>
-  <script type="module" src="script-catenary-v3-2.js"></script>
+  <script type="module" src="script-atlas-v4.js"></script>
 </body>
 </html>

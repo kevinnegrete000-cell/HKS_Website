@@ -56,7 +56,7 @@ body::before{
   padding:8px 0;
 }
 .brand{justify-self:start}
-.nav{justify-self:center}
+.nav{justify-self:center;display:flex;gap:38px;align-items:center}
 .header-actions{justify-self:end;display:flex;gap:38px;align-items:center}
 .nav-btn:hover,.nav-btn.active{color:#fff}
 
@@ -424,7 +424,7 @@ body::before{
 .meta{border-top:1px solid rgba(0,0,0,.15)}
 .meta-row{display:grid;grid-template-columns:1fr 1.06fr;gap:8px;padding:3px 0;border-bottom:1px solid rgba(0,0,0,.14);font-size:10px;line-height:1.2}
 .meta-row span:first-child{color:#333}
-.detail-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:auto;padding-top:12px;border-top:1px solid rgba(0,0,0,.14)}
+.detail-actions{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:auto;padding-top:12px;border-top:1px solid rgba(0,0,0,.14)}
 .detail-actions button{min-height:34px;border:1px solid #8c929a;background:transparent;color:#47515e;cursor:pointer;font-size:10px;padding:5px}
 .detail-actions button.primary{background:#596678;color:#f4f4f1}
 .detail-actions button:hover{background:#d2d5d6}
@@ -846,3 +846,86 @@ body::before{
 @media(prefers-reduced-motion:reduce){
   .relationship-gravity-readout>span{animation:none}
 }
+
+
+/* ============================================================
+   ATLAS — GEOGRAPHIC ARCHIVE + CONSTELLATION MORPH
+   ============================================================ */
+.atlas-view{
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 48%,rgba(93,112,120,.12),transparent 34%),
+    radial-gradient(circle at 50% 50%,rgba(255,255,255,.018),transparent 55%),
+    #080a0a;
+}
+.atlas-stage{position:absolute;inset:0;touch-action:none}
+.atlas-stage canvas{display:block;width:100%;height:100%;cursor:grab}
+.atlas-stage canvas:active{cursor:grabbing}
+.atlas-heading{
+  position:absolute;z-index:5;left:5.3vw;top:10.3vh;
+  width:min(390px,44vw);pointer-events:none;
+  text-shadow:0 3px 24px rgba(0,0,0,.6);
+}
+.atlas-heading h1{margin:7px 0 8px;font-size:clamp(54px,6.2vw,92px);line-height:.9;font-weight:400;letter-spacing:-.055em}
+.atlas-heading>p:last-child{margin:0;color:#999f9c;font-size:15px}
+.atlas-status{position:absolute;z-index:7;left:50%;top:50%;transform:translate(-50%,-50%);color:#969d9b;font:10px "Courier New",monospace;text-transform:uppercase;letter-spacing:.1em;pointer-events:none}
+.atlas-status.loaded{opacity:0;transition:opacity .45s ease}.atlas-status.error{color:#d5aaa5}
+.atlas-location-card{
+  position:absolute;z-index:6;left:28px;bottom:28px;width:min(350px,calc(100vw - 56px));
+  padding:13px 15px;border:1px solid rgba(224,231,228,.13);
+  background:rgba(11,14,14,.66);backdrop-filter:blur(13px);
+}
+.atlas-card-kicker{margin:0 0 9px;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.1);color:#858d8b;font:8px "Courier New",monospace;text-transform:uppercase;letter-spacing:.12em}
+.atlas-location-card strong{display:block;color:#e1e4df;font-size:20px;font-weight:400}
+.atlas-location-card span{display:block;margin-top:5px;color:#a9afac;font-size:11px}
+.atlas-location-card small{display:block;margin-top:8px;color:#6f7775;font:8px "Courier New",monospace;text-transform:uppercase;letter-spacing:.06em}
+.atlas-legend{
+  position:absolute;z-index:6;right:28px;bottom:28px;width:235px;
+  display:grid;gap:7px;padding:12px 14px;border:1px solid rgba(224,231,228,.13);
+  background:rgba(11,14,14,.58);backdrop-filter:blur(12px);
+  color:#9da4a1;font-size:10px;
+}
+.atlas-legend span{display:flex;align-items:center;gap:8px}.atlas-legend i{width:8px;height:8px;border-radius:50%;background:#dce4e4;box-shadow:0 0 12px rgba(188,213,225,.65)}
+.atlas-legend i.arc{width:22px;height:1px;border-radius:0;background:#87969b;box-shadow:none}
+.atlas-legend small{margin-top:5px;color:#626a68;font:7px/1.4 "Courier New",monospace;text-transform:uppercase}
+.atlas-reset-view{position:absolute;z-index:7;right:28px;top:92px;border:1px solid rgba(255,255,255,.17);background:rgba(10,12,12,.58);color:#929a98;padding:7px 10px;font:9px "Courier New",monospace;text-transform:uppercase;cursor:pointer}.atlas-reset-view:hover{color:#fff;border-color:rgba(255,255,255,.38)}
+.atlas-hint{position:absolute;z-index:5;left:50%;bottom:24px;transform:translateX(-50%);color:rgba(215,222,219,.35);font:8px "Courier New",monospace;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;pointer-events:none}
+.atlas-tooltip{position:absolute;z-index:9;min-width:175px;padding:8px 10px;background:rgba(229,229,222,.94);color:#161817;border:1px solid rgba(0,0,0,.3);pointer-events:none;opacity:0;transform:translate(13px,13px);transition:opacity .12s ease}.atlas-tooltip.visible{opacity:1}.atlas-tooltip strong{display:block;font-size:13px;font-weight:500}.atlas-tooltip span{display:block;margin-top:3px;color:#555b59;font-size:9px;line-height:1.35}
+
+.atlas-transition{
+  position:fixed;z-index:140;inset:0;display:grid;place-items:center;
+  background:rgba(7,9,9,.08);opacity:0;visibility:hidden;pointer-events:none;
+  perspective:1100px;overflow:hidden;transition:opacity .2s ease,visibility 0s linear .2s;
+}
+.atlas-transition.active{opacity:1;visibility:visible;transition:opacity .18s ease}
+.atlas-transition.leaving{opacity:0;transition:opacity .48s ease}
+.atlas-transition-field{position:absolute;inset:0;transform-style:preserve-3d}
+.atlas-transition-ring{
+  position:absolute;left:50%;top:50%;width:47vmin;height:47vmin;margin:-23.5vmin 0 0 -23.5vmin;
+  border:1px solid rgba(222,228,225,.42);border-radius:50%;box-shadow:0 0 12px rgba(207,220,224,.04);
+  transform-style:preserve-3d;
+  transform:rotateZ(var(--start-rot)) scaleX(3.35) scaleY(.72) translateX(calc((var(--index) - 7)*1.4vw));
+  opacity:.52;
+}
+.atlas-transition.active .atlas-transition-ring{animation:atlas-ring-fold 1.24s cubic-bezier(.18,.78,.22,1) var(--delay) forwards}
+.atlas-transition-ring.longitude{border-color:rgba(172,190,197,.35)}
+@keyframes atlas-ring-fold{
+  0%{transform:rotateZ(var(--start-rot)) rotateX(0deg) rotateY(0deg) scaleX(3.35) scaleY(.72) translateX(calc((var(--index) - 7)*1.4vw));opacity:.28}
+  48%{opacity:.76}
+  100%{transform:rotateZ(var(--end-rot)) rotateX(var(--tilt)) rotateY(calc(var(--index)*7deg)) scale(1);opacity:.48}
+}
+.atlas-transition-globe{width:47vmin;height:47vmin;border-radius:50%;border:1px solid rgba(222,230,227,.26);background:radial-gradient(circle at 38% 32%,rgba(157,177,185,.12),rgba(8,11,11,.2) 55%,rgba(1,2,2,.6));box-shadow:0 0 90px rgba(130,157,168,.13);opacity:0;transform:scale(.74)}
+.atlas-transition.active .atlas-transition-globe{animation:atlas-core-arrive 1.12s ease .36s forwards}
+@keyframes atlas-core-arrive{to{opacity:1;transform:scale(1)}}
+.atlas-transition-caption{position:absolute;left:50%;bottom:9vh;transform:translateX(-50%);display:grid;text-align:center;color:#c6cdca;font:9px "Courier New",monospace;text-transform:uppercase;letter-spacing:.13em;opacity:0}.atlas-transition-caption small{margin-top:5px;color:#66706d;font-size:7px}.atlas-transition.active .atlas-transition-caption{animation:atlas-caption .9s ease .2s forwards}@keyframes atlas-caption{to{opacity:1}}
+body.atlas-morphing .site-header{opacity:.12;transition:opacity .4s ease}
+
+@media(max-width:900px){.atlas-legend{display:none}.atlas-location-card{width:300px}.detail-actions{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:760px){
+  .nav{display:flex!important;gap:16px}.nav .nav-btn{font-size:12px}.header-actions{gap:14px}.header-actions .nav-btn{font-size:12px}
+  .atlas-heading{left:20px;top:82px;width:70vw}.atlas-heading h1{font-size:58px}.atlas-heading>p:last-child{font-size:12px}
+  .atlas-location-card{left:12px;bottom:12px;width:calc(100vw - 24px);padding:10px 12px}.atlas-location-card strong{font-size:16px}
+  .atlas-reset-view{right:12px;top:72px}.atlas-hint{display:none}.atlas-tooltip{display:none}
+  .detail-actions{grid-template-columns:repeat(2,1fr)}
+}
+@media(prefers-reduced-motion:reduce){.atlas-transition.active .atlas-transition-ring,.atlas-transition.active .atlas-transition-globe,.atlas-transition.active .atlas-transition-caption{animation-duration:.01ms!important;animation-delay:0ms!important}}
