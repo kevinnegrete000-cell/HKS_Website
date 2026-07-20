@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HKS Digital Archive</title>
+  <meta name="description" content="Interactive digital archive of rotating, textured architectural 3D objects.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header" aria-label="Archive navigation">
+    <a class="brand nav-btn active" href="#" data-view="observatory">Observatory</a>
+    <nav class="nav" aria-label="Main navigation">
+      <button class="nav-btn" data-view="timeline">Timeline</button>
+      <button class="nav-btn" data-view="atlas">Atlas</button>
+    </nav>
+    <div class="header-actions">
+      <button id="searchButton" class="nav-btn" aria-label="Search archive">Search</button>
+      <button class="nav-btn" data-view="about">About</button>
+    </div>
+  </header>
+
+  <div id="atlasTransition" class="atlas-transition" aria-hidden="true">
+    <div id="atlasTransitionField" class="atlas-transition-field"></div>
+    <div class="atlas-transition-globe" aria-hidden="true"></div>
+    <div class="atlas-transition-caption"><span>Reprojecting archive</span><small>constellation → geographic field</small></div>
+  </div>
+
+  <main id="app">
+    <section id="observatory" class="view active-view" aria-label="Archive observatory">
+      <div id="canvas" class="canvas">
+        <svg id="orbitSvg" class="orbit-svg" aria-hidden="true"></svg>
+        <div id="nodesLayer" class="nodes-layer"></div>
+      </div>
+
+      <div class="observatory-copy">
+        <h1>HKS Digital Archive</h1>
+        <p>Navigate the constellation of<br>architectural prototypes.</p>
+      </div>
+
+      <button class="edge-nav edge-nav-left" data-view="relationships">Relationships</button>
+      <button class="edge-nav edge-nav-right" data-view="about">About</button>
+      <button class="corner-about" data-view="about">About</button>
+
+      <div class="archive-total">Archive Items: <span id="itemCount"></span></div>
+      <div class="canvas-hint">Drag to explore · Scroll to zoom · Click a node</div>
+      <div class="zoom-controls" aria-label="Canvas zoom controls">
+        <button id="zoomIn" aria-label="Zoom in">＋</button>
+        <button id="zoomOut" aria-label="Zoom out">−</button>
+        <button id="zoomReset" aria-label="Reset view">↺</button>
+      </div>
+    </section>
+
+
+    <section id="atlas" class="view atlas-view" aria-label="Interactive geographic project atlas">
+      <div id="atlasStage" class="atlas-stage" role="application" aria-label="Interactive 3D world atlas"></div>
+      <div class="atlas-heading">
+        <p class="eyebrow">Geographic archive</p>
+        <h1>Atlas</h1>
+        <p>Projects positioned across a living world field.</p>
+      </div>
+      <div id="atlasStatus" class="atlas-status">Assembling geographic field…</div>
+      <div id="atlasTooltip" class="atlas-tooltip" aria-hidden="true"></div>
+      <div class="atlas-location-card">
+        <p class="atlas-card-kicker">Selected location</p>
+        <strong id="atlasSelectedCity">Global archive</strong>
+        <span id="atlasSelectedProject">Select a project marker</span>
+        <small id="atlasSelectedCoordinates">Drag to orbit · Scroll to zoom</small>
+      </div>
+      <div class="atlas-legend">
+        <span><i></i>Project location</span>
+        <span><i class="arc"></i>Archive relationship</span>
+        <small>Prototype coordinates are provisional and can be replaced with verified project locations.</small>
+      </div>
+      <button id="atlasResetView" class="atlas-reset-view" type="button">Reset globe</button>
+      <div class="atlas-hint">Drag to orbit · Right-drag to pan · Scroll to zoom · Click a marker to open its object</div>
+    </section>
+
+    <section id="relationships" class="view relationship-view" aria-label="Prototype relationship network">
+      <div class="relationship-titlebar">
+        <h1>Prototype Relationships</h1>
+        <p><span id="relationshipVisibleCount">000</span> visible connections</p>
+      </div>
+
+      <div class="relationship-workspace">
+        <aside class="relationship-rail relationship-rail-left">
+          <section class="relationship-panel-block selected-project-block">
+            <p class="relationship-kicker">Selected project</p>
+            <span class="relationship-small-label">Confidential code</span>
+            <strong id="relationshipSelectedCode">—</strong>
+            <span id="relationshipSelectedTitle" class="relationship-selected-title">Select a prototype in the network</span>
+          </section>
+
+          <section class="relationship-panel-block">
+            <p class="relationship-kicker">Filters</p>
+            <div id="relationshipFilters" class="relationship-filter-list"></div>
+          </section>
+
+          <section class="relationship-panel-block relationship-mode-block">
+            <p class="relationship-kicker">View mode</p>
+            <button class="relationship-mode active" data-relationship-mode="all">[ All relationships ]</button>
+            <button class="relationship-mode" data-relationship-mode="direct">[ Direct relationships ]</button>
+            <button class="relationship-mode" data-relationship-mode="strongest">[ Strongest similarities ]</button>
+          </section>
+        </aside>
+
+        <div class="relationship-network-shell">
+          <div id="relationshipNetwork" class="relationship-network" role="application" aria-label="Interactive 3D relationship network"></div>
+          <div id="relationshipNetworkStatus" class="relationship-network-status">Releasing suspended relationship field…</div>
+          <div id="relationshipNetworkTooltip" class="relationship-network-tooltip" aria-hidden="true"></div>
+          <div class="relationship-network-hint">Drag to orbit and disturb the hanging field · Right-drag to pan · Scroll to zoom · Click a weight to trace its paths</div>
+          <button id="relationshipResetView" class="relationship-reset-view" type="button">Reset view</button>
+          <div class="relationship-gravity-readout" aria-hidden="true"><span></span><div><b>Live gravity field</b><small>camera movement disturbs the suspension</small></div></div>
+        </div>
+
+        <aside class="relationship-rail relationship-rail-right">
+          <section class="relationship-panel-block relationship-legend-block">
+            <p class="relationship-kicker">Relationship legend</p>
+            <div class="relationship-legend">
+              <span><i data-category="Material"></i>Material similarity</span>
+              <span><i data-category="Typology"></i>Typology</span>
+              <span><i data-category="Fabrication"></i>Fabrication</span>
+              <span><i data-category="Geometry"></i>Geometry</span>
+              <span><i data-category="Project Phase"></i>Project phase</span>
+            </div>
+          </section>
+
+          <section class="relationship-panel-block relationship-detail-block">
+            <p class="relationship-kicker">Selected relationship details</p>
+            <div id="relationshipDetailScore" class="relationship-score">—</div>
+            <strong id="relationshipDetailCategory">Select a prototype</strong>
+            <p id="relationshipDetailText">Click a node to reveal its strongest direct connection and filter the network around it.</p>
+            <div id="relationshipNeighborList" class="relationship-neighbor-list"></div>
+          </section>
+
+          <section class="relationship-panel-block relationship-preview-block">
+            <p class="relationship-kicker">Selected prototype preview</p>
+            <div class="relationship-preview-media">
+              <img id="relationshipPreviewImage" alt="Selected prototype material preview">
+              <span id="relationshipPreviewFallback">3D</span>
+            </div>
+            <button id="openRelationshipPrototype" class="relationship-open-project" type="button">Open full prototype abstract</button>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section id="timeline" class="view content-view">
+      <div class="content-heading">
+        <p class="eyebrow">Archive chronology</p>
+        <h1>Timeline</h1>
+        <p>Research objects organized by year, from field trials to speculative prototypes.</p>
+      </div>
+      <div id="timelineList" class="timeline-list"></div>
+    </section>
+
+    <section id="about" class="view content-view">
+      <div class="about-grid">
+        <div><p class="eyebrow">About the archive</p><h1>A living map of design intelligence.</h1></div>
+        <div class="about-copy">
+          <p>This interface treats the archive less like a filing cabinet and more like a constellation. Every visible object node now opens a supplied textured OBJ model inside the archive panel.</p>
+          <p>The prototype is built with plain HTML, CSS, and JavaScript, with Three.js used only when an interactive 3D object is opened.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <aside id="detailPanel" class="detail-panel" aria-hidden="true">
+    <div class="detail-panel-bar">
+      <span>HKS Digital Archive</span>
+      <button id="closeDetail" class="close-button" aria-label="Close details">×</button>
+    </div>
+    <div id="detailContent"></div>
+  </aside>
+
+  <div id="searchOverlay" class="search-overlay" aria-hidden="true">
+    <div class="search-dialog">
+      <div class="search-top">
+        <input id="searchInput" type="search" placeholder="Search title, material, location…" autocomplete="off">
+        <button id="closeSearch" aria-label="Close search">×</button>
+      </div>
+      <div id="searchResults" class="search-results"></div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" src="script-atlas-v4-1.js"></script>
+</body>
+</html>
