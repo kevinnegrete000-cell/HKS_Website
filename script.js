@@ -1530,35 +1530,53 @@ function makeHangingConnection(relationship,source,target,index){
 const ropeDelta={x:0,y:0,z:0};
 const ropeMatrixHolder={matrix:null};
 
-function updateHangingConnectionGeometry(connection,elapsed){
-  const array=connection.attribute.array;
-  connection.positions.forEach((point,index)=>{
-    const base=index*3;
-    array[base]=point.x;
-    array[base+1]=point.y;
-    array[base+2]=point.z;
-  });
-  connection.attribute.needsUpdate=true;
+function updateHangingConnectionGeometry(connection,elapsed=0){
+  if(!connection||!Array.isArray(connection.positions)||connection.positions.length<2)return;
+
+  const positions=connection.positions;
+  const lastAvailable=positions.length-1;
+  const declaredSegments=Number(connection.segmentCount);
+  const segmentCount=Math.max(1,Math.min(
+    Number.isFinite(declaredSegments)?Math.floor(declaredSegments):lastAvailable,
+    lastAvailable
+  ));
+  const array=connection.attribute?.array;
+
+  if(array){
+    positions.forEach((point,index)=>{
+      if(!point)return;
+      const base=index*3;
+      array[base]=Number.isFinite(point.x)?point.x:0;
+      array[base+1]=Number.isFinite(point.y)?point.y:0;
+      array[base+2]=Number.isFinite(point.z)?point.z:0;
+    });
+    connection.attribute.needsUpdate=true;
+  }
 
   if(!ropeMatrixHolder.matrix)ropeMatrixHolder.matrix=new THREE.Matrix4();
-  connection.beadIndices.forEach((pointIndex,instanceIndex)=>{
-    ropeMatrixHolder.matrix.makeTranslation(
-      connection.positions[pointIndex].x,
-      connection.positions[pointIndex].y,
-      connection.positions[pointIndex].z
-    );
+  connection.beadIndices?.forEach((pointIndex,instanceIndex)=>{
+    const point=positions[Math.max(0,Math.min(lastAvailable,pointIndex))];
+    if(!point||!connection.beads)return;
+    ropeMatrixHolder.matrix.makeTranslation(point.x||0,point.y||0,point.z||0);
     connection.beads.setMatrixAt(instanceIndex,ropeMatrixHolder.matrix);
   });
-  connection.beads.instanceMatrix.needsUpdate=true;
+  if(connection.beads?.instanceMatrix)connection.beads.instanceMatrix.needsUpdate=true;
 
-  const signalT=(elapsed*(.045+connection.relationship.strength*.035)+connection.phase)%1;
-  const scaled=signalT*connection.segmentCount;
-  const low=Math.min(connection.segmentCount-1,Math.floor(scaled));
-  const alpha=scaled-low;
-  connection.signal.position.copy(connection.positions[low]).lerp(connection.positions[low+1],alpha);
+  const time=Number.isFinite(elapsed)?elapsed:0;
+  const rawStrength=Number(connection.relationship?.strength);
+  const strength=Number.isFinite(rawStrength)?rawStrength:.5;
+  const phase=Number.isFinite(connection.phase)?connection.phase:0;
+  const signalT=((time*(.045+strength*.035)+phase)%1+1)%1;
+  const scaled=signalT*segmentCount;
+  const low=Math.max(0,Math.min(segmentCount-1,Math.floor(scaled)));
+  const high=Math.min(segmentCount,low+1);
+  const from=positions[low]||positions[0];
+  const to=positions[high]||positions[lastAvailable]||from;
+  const alpha=Math.max(0,Math.min(1,scaled-low));
+  if(connection.signal&&from&&to)connection.signal.position.copy(from).lerp(to,alpha);
 
-  const midpoint=connection.positions[Math.floor(connection.segmentCount*.5)];
-  connection.label.position.copy(midpoint).add(new THREE.Vector3(0,.34,0));
+  const midpoint=positions[Math.max(0,Math.min(lastAvailable,Math.floor(segmentCount*.5)))]||positions[0];
+  if(connection.label&&midpoint)connection.label.position.set(midpoint.x,midpoint.y+.34,midpoint.z);
 }
 
 function simulateHangingConnection(connection,dt,gravity,elapsed){
@@ -1813,6 +1831,7 @@ async function initRelationshipNetwork(){
     const source=positions.get(relationship.source),target=positions.get(relationship.target);
     if(!source||!target)return;
     const connection=makeHangingConnection(relationship,source,target,index);
+    updateHangingConnectionGeometry(connection,0);
     scene.add(connection.halo,connection.line,connection.beads,connection.signal,connection.label);
     connections.push(connection);
   });
@@ -1933,7 +1952,13 @@ async function initRelationshipNetwork(){
 
     inertialForce.multiplyScalar(Math.exp(-delta*1.9));
     gravity.set(inertialForce.x,-7.4+inertialForce.y*.28,inertialForce.z);
-    connections.forEach(connection=>simulateHangingConnection(connection,delta,gravity,relationshipViewer.elapsed));
+    connections.forEach(connection=>{
+      try{
+        simulateHangingConnection(connection,delta,gravity,relationshipViewer.elapsed);
+      }catch(error){
+        console.warn('Skipped one invalid hanging relationship',connection?.relationship,error);
+      }
+    });
 
     let nodeCounter=0;
     nodeMap.forEach(node=>{
