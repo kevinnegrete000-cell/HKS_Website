@@ -1268,20 +1268,24 @@ body.specimen-morphing .site-header,body.specimen-morphing .observatory-copy,bod
    ============================================================ */
 #observatory{
   isolation:isolate;
-  background:#111311;
+  background-color:#0d0f0e;
+  background-image:
+    linear-gradient(90deg,rgba(8,10,9,.48) 0%,rgba(8,10,9,.12) 44%,rgba(8,10,9,.3) 100%),
+    linear-gradient(180deg,rgba(7,9,8,.12),rgba(7,9,8,.42)),
+    url("./assets/backgrounds/observatory-dark-texture.png");
+  background-position:center,center,50% 48%;
+  background-size:cover,cover,cover;
+  background-repeat:no-repeat;
 }
 .observatory-texture{
   position:absolute;
   inset:0;
   z-index:0;
   pointer-events:none;
-  background:
-    linear-gradient(90deg,rgba(10,12,11,.74) 0%,rgba(10,12,11,.34) 38%,rgba(10,12,11,.49) 100%),
-    linear-gradient(180deg,rgba(8,10,9,.26),rgba(8,10,9,.64)),
-    url("assets/backgrounds/observatory-dark-texture.png") center/cover no-repeat;
-  opacity:.44;
-  filter:grayscale(1) contrast(1.1);
-  mix-blend-mode:screen;
+  background:url("./assets/backgrounds/observatory-dark-texture.png") 50% 48%/cover no-repeat;
+  opacity:.30;
+  filter:grayscale(1) contrast(1.18) brightness(.78);
+  mix-blend-mode:normal;
 }
 #observatory::after{
   content:"";
@@ -1290,8 +1294,8 @@ body.specimen-morphing .site-header,body.specimen-morphing .observatory-copy,bod
   z-index:0;
   pointer-events:none;
   background:
-    radial-gradient(ellipse at 20% 22%,rgba(15,17,16,.18),rgba(10,12,11,.72) 72%),
-    linear-gradient(90deg,rgba(10,12,11,.36),transparent 45%,rgba(10,12,11,.2));
+    radial-gradient(ellipse at 19% 20%,rgba(13,15,14,.08),rgba(8,10,9,.42) 78%),
+    linear-gradient(90deg,rgba(7,9,8,.18),transparent 48%,rgba(7,9,8,.12));
 }
 #observatory .canvas{z-index:1}
 #observatory .observatory-copy,
