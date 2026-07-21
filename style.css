@@ -993,7 +993,7 @@ body.atlas-morphing .site-header{opacity:.12;transition:opacity .4s ease}
 
 
 /* ============================================================
-   SPECIMENS — CABINET WALL / FLOATING FIELD
+   SPECIMENS — LABORATORY GRID / HOVER FIELD
    ============================================================ */
 .specimens-view{
   overflow:hidden;
@@ -1039,7 +1039,12 @@ body.atlas-morphing .site-header{opacity:.12;transition:opacity .4s ease}
   position:absolute;z-index:6;right:28px;bottom:28px;display:grid;gap:7px;padding:11px 13px;
   border:1px solid rgba(224,231,228,.11);background:rgba(8,11,11,.5);backdrop-filter:blur(11px);color:#838b89;font-size:9px
 }
-.specimen-mode-key span{display:flex;align-items:center;gap:8px}.specimen-mode-key i{width:22px;height:1px;background:#758082}.specimen-mode-key i.field{border-top:1px dashed #758082;background:none}
+.specimen-mode-key span{display:flex;align-items:center;gap:8px}
+.specimen-mode-key i{display:block;flex:0 0 auto}
+.specimen-mode-key i.cabinet{width:22px;height:12px;border:1px solid rgba(117,128,130,.72);background:
+  linear-gradient(90deg,transparent 47%,rgba(117,128,130,.72) 48% 52%,transparent 53%),
+  linear-gradient(transparent 47%,rgba(117,128,130,.72) 48% 52%,transparent 53%)}
+.specimen-mode-key i.field{width:10px;height:10px;border:1px solid #758082;border-radius:50%;background:rgba(117,128,130,.12);box-shadow:0 0 8px rgba(190,207,210,.18)}
 .specimen-reset-view{position:absolute;z-index:7;right:28px;top:92px;border:1px solid rgba(255,255,255,.17);background:rgba(8,10,10,.58);color:#929a98;padding:7px 10px;font:9px "Courier New",monospace;text-transform:uppercase;cursor:pointer}.specimen-reset-view:hover{color:#fff;border-color:rgba(255,255,255,.38)}
 .specimen-hint{position:absolute;z-index:5;left:50%;bottom:24px;transform:translateX(-50%);color:rgba(215,222,219,.32);font:8px "Courier New",monospace;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;pointer-events:none}
 
