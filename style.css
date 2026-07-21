@@ -1078,3 +1078,33 @@ body.specimen-morphing .site-header,body.specimen-morphing .observatory-copy,bod
 @media(prefers-reduced-motion:reduce){
   .specimen-transition.active .specimen-transition-line,.specimen-transition.active .specimen-transition-portal,.specimen-transition.active .specimen-transition-caption{animation-duration:.01ms!important;animation-delay:0ms!important}
 }
+
+
+/* ============================================================
+   V5.3 — ARCHIVE IDENTITY FILTERS + COMPACT RELATIONSHIP NODES
+   ============================================================ */
+.relationship-filter-list{gap:10px}
+.relationship-filter-group{display:grid;gap:5px}
+.relationship-filter-group>p{
+  margin:0;
+  color:#777e7f;
+  font:7px "Courier New",monospace;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+}
+.relationship-filter-grid{display:grid;gap:4px}
+.relationship-filter-grid-sectors{grid-template-columns:1fr 1fr}
+.relationship-filter-option{
+  min-height:23px;
+  padding:3px 7px;
+  font-size:9px;
+  line-height:1.1;
+}
+.relationship-filter-grid-sectors .relationship-filter-option span{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+@media(max-width:1120px){
+  .relationship-filter-grid-sectors{grid-template-columns:1fr}
+}
