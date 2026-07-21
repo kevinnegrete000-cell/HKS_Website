@@ -1261,3 +1261,89 @@ body.specimen-morphing .site-header,body.specimen-morphing .observatory-copy,bod
   border-color:rgba(255,255,255,.11);
   background:rgba(255,255,255,.018);
 }
+
+
+/* ============================================================
+   V5.7 — TWO RELATIONSHIP DROPDOWNS + TEXTURED OBSERVATORY
+   ============================================================ */
+#observatory{
+  isolation:isolate;
+  background:#111311;
+}
+.observatory-texture{
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(10,12,11,.74) 0%,rgba(10,12,11,.34) 38%,rgba(10,12,11,.49) 100%),
+    linear-gradient(180deg,rgba(8,10,9,.26),rgba(8,10,9,.64)),
+    url("assets/backgrounds/observatory-dark-texture.png") center/cover no-repeat;
+  opacity:.44;
+  filter:grayscale(1) contrast(1.1);
+  mix-blend-mode:screen;
+}
+#observatory::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse at 20% 22%,rgba(15,17,16,.18),rgba(10,12,11,.72) 72%),
+    linear-gradient(90deg,rgba(10,12,11,.36),transparent 45%,rgba(10,12,11,.2));
+}
+#observatory .canvas{z-index:1}
+#observatory .observatory-copy,
+#observatory .edge-nav,
+#observatory .archive-total,
+#observatory .canvas-hint,
+#observatory .zoom-controls{z-index:9}
+
+.relationship-workspace{
+  grid-template-columns:minmax(280px,300px) minmax(0,1fr) 230px;
+}
+.relationship-rail-left .relationship-panel-block{
+  padding-left:14px;
+  padding-right:14px;
+}
+.relationship-filter-list{
+  grid-template-columns:1fr;
+}
+.relationship-filter-group{
+  min-width:0;
+}
+.relationship-filter-dropdown{
+  border-color:rgba(255,255,255,.25);
+  background:rgba(11,13,14,.46);
+}
+.relationship-filter-dropdown>summary{
+  min-height:34px;
+  padding:7px 10px;
+  font-size:11px;
+}
+.relationship-filter-dropdown-menu{
+  max-height:190px;
+  overflow:auto;
+  padding:7px;
+}
+.relationship-filter-dropdown-menu.relationship-filter-grid-sectors{
+  display:grid;
+  grid-template-columns:1fr;
+}
+.relationship-filter-dropdown-menu .relationship-filter-option{
+  min-height:27px;
+  padding:5px 8px;
+  font-size:10px;
+}
+@media(max-width:1180px){
+  .relationship-workspace{grid-template-columns:245px minmax(0,1fr) 210px}
+}
+@media(max-width:1000px){
+  .relationship-workspace{grid-template-columns:225px minmax(0,1fr) 190px}
+}
+@media(max-width:760px){
+  .relationship-workspace{grid-template-columns:1fr}
+  .relationship-rail-left{grid-template-columns:1fr 1fr}
+  .observatory-texture{opacity:.34;background-position:42% center}
+}
