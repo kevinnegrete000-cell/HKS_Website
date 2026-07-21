@@ -1264,32 +1264,23 @@ body.specimen-morphing .site-header,body.specimen-morphing .observatory-copy,bod
 
 
 /* ============================================================
-   V5.7.2 — GRAPHITE PAPER OBSERVATORY BACKGROUND
+   V5.8 — LIVE DUST OBSERVATORY / NO STATIC IMAGE
    ============================================================ */
 #observatory{
   isolation:isolate;
-  background-color:#090b0a;
-  background-image:
-    radial-gradient(ellipse at 47% 43%,rgba(255,255,255,.025) 0%,rgba(255,255,255,.009) 32%,transparent 61%),
-    radial-gradient(ellipse at 16% 18%,rgba(255,255,255,.018),transparent 34%),
-    linear-gradient(180deg,rgba(5,7,6,.16),rgba(5,7,6,.48)),
-    url("./assets/backgrounds/observatory-graphite-paper.png");
-  background-position:center,center,center,center;
-  background-size:cover,cover,cover,cover;
-  background-repeat:no-repeat;
-  background-blend-mode:screen,screen,normal,normal;
+  background:
+    radial-gradient(ellipse at 48% 44%,rgba(255,255,255,.021) 0%,rgba(255,255,255,.007) 30%,transparent 62%),
+    radial-gradient(ellipse at 15% 15%,rgba(255,255,255,.012),transparent 34%),
+    linear-gradient(180deg,#0a0c0b 0%,#070908 72%,#050706 100%);
 }
-.observatory-texture{
+.observatory-dust{
   position:absolute;
   inset:0;
   z-index:0;
+  width:100%;
+  height:100%;
   pointer-events:none;
-  background:
-    radial-gradient(circle at 18% 28%,rgba(255,255,255,.045) 0 1px,transparent 1.5px) 0 0/113px 107px,
-    radial-gradient(circle at 72% 64%,rgba(255,255,255,.035) 0 1px,transparent 1.4px) 0 0/157px 149px,
-    linear-gradient(transparent,rgba(0,0,0,.12));
-  opacity:.58;
-  mix-blend-mode:screen;
+  opacity:.9;
 }
 #observatory::after{
   content:"";
@@ -1298,8 +1289,8 @@ body.specimen-morphing .site-header,body.specimen-morphing .observatory-copy,bod
   z-index:0;
   pointer-events:none;
   background:
-    radial-gradient(ellipse at 23% 20%,rgba(10,12,11,.04) 0 18%,rgba(7,9,8,.22) 58%,rgba(5,7,6,.46) 100%),
-    linear-gradient(90deg,rgba(4,6,5,.17),transparent 42%,rgba(4,6,5,.16));
+    radial-gradient(ellipse at 23% 20%,transparent 0 22%,rgba(5,7,6,.12) 62%,rgba(3,5,4,.35) 100%),
+    linear-gradient(90deg,rgba(3,5,4,.12),transparent 42%,rgba(3,5,4,.1));
 }
 #observatory .canvas{z-index:1}
 #observatory .observatory-copy,
@@ -1353,5 +1344,4 @@ body.specimen-morphing .site-header,body.specimen-morphing .observatory-copy,bod
 @media(max-width:760px){
   .relationship-workspace{grid-template-columns:1fr}
   .relationship-rail-left{grid-template-columns:1fr 1fr}
-  .observatory-texture{opacity:.46}
 }
