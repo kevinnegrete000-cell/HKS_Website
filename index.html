@@ -13,6 +13,7 @@
     <nav class="nav" aria-label="Main navigation">
       <button class="nav-btn" data-view="timeline">Timeline</button>
       <button class="nav-btn" data-view="atlas">Atlas</button>
+      <button class="nav-btn" data-view="specimens">Specimens</button>
     </nav>
     <div class="header-actions">
       <button id="searchButton" class="nav-btn" aria-label="Search archive">Search</button>
@@ -24,6 +25,12 @@
     <div id="atlasTransitionField" class="atlas-transition-field"></div>
     <div class="atlas-transition-globe" aria-hidden="true"></div>
     <div class="atlas-transition-caption"><span>Reprojecting archive</span><small>constellation → geographic field</small></div>
+  </div>
+
+  <div id="specimenTransition" class="specimen-transition" aria-hidden="true">
+    <div id="specimenTransitionField" class="specimen-transition-field" aria-hidden="true"></div>
+    <div class="specimen-transition-portal" aria-hidden="true"><span></span></div>
+    <div class="specimen-transition-caption"><span>Entering specimen field</span><small>constellation → spatial archive</small></div>
   </div>
 
   <main id="app">
@@ -38,6 +45,12 @@
         <p>Navigate the constellation of<br>architectural prototypes.</p>
       </div>
 
+      <button id="specimenPortal" class="specimen-portal" type="button" aria-label="Enter Specimens">
+        <span class="specimen-portal-rings" aria-hidden="true"></span>
+        <span class="specimen-portal-core" aria-hidden="true"></span>
+        <span class="specimen-portal-label"><b>Enter Specimen Field</b><small>spatial object archive</small></span>
+      </button>
+
       <button class="edge-nav edge-nav-left" data-view="relationships">Relationships</button>
 
       <div class="archive-total">Archive Items: <span id="itemCount"></span></div>
@@ -49,6 +62,30 @@
       </div>
     </section>
 
+
+    <section id="specimens" class="view specimens-view" aria-label="Spatial archive of 3D specimens">
+      <div id="specimenStage" class="specimen-stage" role="application" aria-label="Interactive 3D specimen hall"></div>
+      <div id="specimenLabels" class="specimen-labels" aria-hidden="true"></div>
+      <div class="specimen-heading">
+        <p class="eyebrow">Spatial object archive</p>
+        <h1>Specimens</h1>
+        <p>A cabinet of luminous objects dissolving into a suspended field.</p>
+      </div>
+      <div id="specimenStatus" class="specimen-status">Opening the cabinet…</div>
+      <div class="specimen-mode-key" aria-hidden="true">
+        <span><i class="cabinet"></i>Cabinet wall</span>
+        <span><i class="field"></i>Floating field</span>
+      </div>
+      <aside class="specimen-card">
+        <p class="specimen-card-kicker">Selected specimen</p>
+        <strong id="specimenSelectedCode">Archive field</strong>
+        <span id="specimenSelectedTitle">Hover over a luminous object</span>
+        <small id="specimenSelectedMeta">Click to open its full prototype abstract</small>
+        <button id="specimenOpenSelected" type="button" disabled>Open specimen</button>
+      </aside>
+      <button id="specimenResetView" class="specimen-reset-view" type="button">Reset field</button>
+      <div class="specimen-hint">Drag to orbit · Right-drag to pan · Scroll to zoom · Click a silhouette to open it</div>
+    </section>
 
     <section id="atlas" class="view atlas-view" aria-label="Interactive geographic project atlas">
       <div id="atlasStage" class="atlas-stage" role="application" aria-label="Interactive 3D world atlas"></div>
@@ -189,6 +226,6 @@
       }
     }
   </script>
-  <script type="module" src="script-atlas-v4-8.js?v=4.8.0"></script>
+  <script type="module" src="script-specimens-v5.js?v=5.0.0"></script>
 </body>
 </html>

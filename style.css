@@ -990,3 +990,108 @@ body.atlas-morphing .site-header{opacity:.12;transition:opacity .4s ease}
   .detail-actions{grid-template-columns:repeat(2,1fr)}
 }
 @media(prefers-reduced-motion:reduce){.atlas-transition.active .atlas-transition-ring,.atlas-transition.active .atlas-transition-globe,.atlas-transition.active .atlas-transition-caption{animation-duration:.01ms!important;animation-delay:0ms!important}}
+
+
+/* ============================================================
+   SPECIMENS — CABINET WALL / FLOATING FIELD
+   ============================================================ */
+.specimens-view{
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 40%,rgba(164,184,190,.055),transparent 42%),
+    linear-gradient(180deg,#080a0a,#050707 72%);
+}
+.specimen-stage{position:absolute;inset:0}
+.specimen-stage canvas{display:block;width:100%;height:100%;cursor:grab}
+.specimen-stage canvas:active{cursor:grabbing}
+.specimen-heading{
+  position:absolute;z-index:6;left:30px;top:88px;width:min(430px,55vw);pointer-events:none;
+  text-shadow:0 3px 24px rgba(0,0,0,.65)
+}
+.specimen-heading h1{margin:7px 0 9px;font-size:clamp(54px,6.2vw,92px);line-height:.9;font-weight:400;letter-spacing:-.055em}
+.specimen-heading>p:last-child{margin:0;color:#929997;font-size:14px;line-height:1.35}
+.specimen-status{
+  position:absolute;z-index:7;left:50%;top:50%;transform:translate(-50%,-50%);
+  color:#9ea6a4;font:9px "Courier New",monospace;text-transform:uppercase;letter-spacing:.11em;pointer-events:none
+}
+.specimen-status.loaded{opacity:0;transition:opacity .6s ease 1.2s}.specimen-status.error{color:#d1a7a3}
+.specimen-labels{position:absolute;z-index:5;inset:0;overflow:hidden;pointer-events:none}
+.specimen-label-item{
+  position:absolute;width:190px;transform-origin:center bottom;transition:opacity .18s ease,transform .18s ease;
+  color:#8f9795;text-align:center;font:7px/1.25 "Courier New",monospace;text-transform:uppercase;letter-spacing:.04em;
+  text-shadow:0 1px 8px #000
+}
+.specimen-label-item strong{display:block;color:#dfe5e3;font-size:9px;font-weight:400;letter-spacing:.06em}
+.specimen-label-item span{display:block;margin-top:3px;color:#727a78}
+.specimen-label-item.hovered,.specimen-label-item.selected{color:#fff}.specimen-label-item.hovered strong,.specimen-label-item.selected strong{color:#fff}
+.specimen-card{
+  position:absolute;z-index:7;left:28px;bottom:28px;width:min(340px,calc(100vw - 56px));
+  padding:13px 15px;border:1px solid rgba(224,231,228,.13);background:rgba(8,11,11,.67);backdrop-filter:blur(14px)
+}
+.specimen-card-kicker{margin:0 0 9px;padding-bottom:7px;border-bottom:1px solid rgba(255,255,255,.1);color:#818987;font:8px "Courier New",monospace;text-transform:uppercase;letter-spacing:.12em}
+.specimen-card strong{display:block;color:#e0e5e3;font-size:18px;font-weight:400}
+.specimen-card span{display:block;margin-top:5px;color:#a7aeab;font-size:11px}
+.specimen-card small{display:block;margin-top:7px;color:#69716f;font:7px/1.4 "Courier New",monospace;text-transform:uppercase;letter-spacing:.055em}
+.specimen-card button{width:100%;margin-top:11px;padding:8px;border:1px solid rgba(214,223,221,.24);background:rgba(180,196,201,.08);color:#aab3b1;font:8px "Courier New",monospace;text-transform:uppercase;cursor:pointer}
+.specimen-card button:not(:disabled):hover{color:#fff;border-color:rgba(255,255,255,.52);background:rgba(202,216,220,.14)}
+.specimen-card button:disabled{opacity:.34;cursor:default}
+.specimen-mode-key{
+  position:absolute;z-index:6;right:28px;bottom:28px;display:grid;gap:7px;padding:11px 13px;
+  border:1px solid rgba(224,231,228,.11);background:rgba(8,11,11,.5);backdrop-filter:blur(11px);color:#838b89;font-size:9px
+}
+.specimen-mode-key span{display:flex;align-items:center;gap:8px}.specimen-mode-key i{width:22px;height:1px;background:#758082}.specimen-mode-key i.field{border-top:1px dashed #758082;background:none}
+.specimen-reset-view{position:absolute;z-index:7;right:28px;top:92px;border:1px solid rgba(255,255,255,.17);background:rgba(8,10,10,.58);color:#929a98;padding:7px 10px;font:9px "Courier New",monospace;text-transform:uppercase;cursor:pointer}.specimen-reset-view:hover{color:#fff;border-color:rgba(255,255,255,.38)}
+.specimen-hint{position:absolute;z-index:5;left:50%;bottom:24px;transform:translateX(-50%);color:rgba(215,222,219,.32);font:8px "Courier New",monospace;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;pointer-events:none}
+
+.specimen-portal{
+  position:absolute;z-index:13;left:50%;top:56%;width:112px;height:112px;transform:translate(-50%,-50%);
+  border:0;border-radius:50%;background:transparent;color:#bcc5c3;cursor:pointer
+}
+.specimen-portal-rings,.specimen-portal-rings::before,.specimen-portal-rings::after{
+  position:absolute;content:"";inset:0;border:1px solid rgba(218,226,224,.16);border-radius:50%;transition:.45s cubic-bezier(.2,.8,.2,1)
+}
+.specimen-portal-rings::before{inset:13px;border-color:rgba(218,226,224,.23)}
+.specimen-portal-rings::after{inset:31px;border-color:rgba(235,241,239,.38)}
+.specimen-portal-core{position:absolute;left:50%;top:50%;width:9px;height:9px;transform:translate(-50%,-50%);border-radius:50%;background:#dce3e1;box-shadow:0 0 18px rgba(205,224,227,.5)}
+.specimen-portal-label{position:absolute;left:50%;top:calc(100% + 12px);transform:translateX(-50%);width:180px;text-align:center;opacity:.48;transition:.3s ease;font:7px "Courier New",monospace;text-transform:uppercase;letter-spacing:.08em}
+.specimen-portal-label b{display:block;color:#d5ddda;font-size:8px;font-weight:400}.specimen-portal-label small{display:block;margin-top:3px;color:#69716f;font-size:6px}
+.specimen-portal:hover .specimen-portal-rings{transform:scale(1.24) rotate(45deg);border-color:rgba(235,242,240,.38)}
+.specimen-portal:hover .specimen-portal-rings::before{transform:scale(.82) rotate(-95deg);border-color:rgba(235,242,240,.48)}
+.specimen-portal:hover .specimen-portal-rings::after{transform:scale(1.16);border-color:rgba(255,255,255,.7)}
+.specimen-portal:hover .specimen-portal-label{opacity:1;transform:translateX(-50%) translateY(4px)}
+
+.specimen-transition{
+  position:fixed;z-index:145;inset:0;overflow:hidden;background:#070909;opacity:0;visibility:hidden;pointer-events:none;
+  transition:opacity .22s ease,visibility 0s linear .22s
+}
+.specimen-transition.active{opacity:1;visibility:visible;transition:opacity .2s ease}
+.specimen-transition.leaving{opacity:0;transition:opacity .52s ease}
+.specimen-transition-field{position:absolute;inset:0;perspective:1200px;transform-style:preserve-3d}
+.specimen-transition-line{
+  position:absolute;left:50%;top:50%;width:135vw;height:1px;margin-left:-67.5vw;
+  background:linear-gradient(90deg,transparent,rgba(222,230,228,.36) 17%,rgba(222,230,228,.42) 83%,transparent);
+  transform:translateY(calc((var(--index) - 9)*3.4vh)) rotate(var(--start-rot)) scaleX(.72);opacity:.28;transform-origin:center
+}
+.specimen-transition.active .specimen-transition-line{animation:specimen-lines-rise 1.32s cubic-bezier(.18,.78,.22,1) var(--delay) forwards}
+@keyframes specimen-lines-rise{
+  0%{transform:translateY(calc((var(--index) - 9)*3.4vh)) rotate(var(--start-rot)) scaleX(.72);opacity:.18}
+  48%{opacity:.65}
+  100%{transform:translateX(var(--end-x)) rotate(90deg) scaleX(1.1);opacity:.32}
+}
+.specimen-transition-portal{position:absolute;left:50%;top:50%;width:18vmin;height:18vmin;transform:translate(-50%,-50%) scale(.35);border:1px solid rgba(226,235,232,.35);border-radius:50%;opacity:0;box-shadow:0 0 90px rgba(164,193,200,.12)}
+.specimen-transition-portal span{position:absolute;inset:26%;border:1px solid rgba(236,243,241,.65);border-radius:50%;box-shadow:0 0 35px rgba(215,232,235,.2)}
+.specimen-transition.active .specimen-transition-portal{animation:specimen-portal-open 1.25s cubic-bezier(.2,.8,.2,1) .12s forwards}
+@keyframes specimen-portal-open{45%{opacity:1}100%{opacity:.04;transform:translate(-50%,-50%) scale(8.5)}}
+.specimen-transition-caption{position:absolute;left:50%;bottom:9vh;transform:translateX(-50%);display:grid;text-align:center;color:#c6cdca;font:9px "Courier New",monospace;text-transform:uppercase;letter-spacing:.13em;opacity:0}.specimen-transition-caption small{margin-top:5px;color:#66706d;font-size:7px}.specimen-transition.active .specimen-transition-caption{animation:specimen-caption .9s ease .2s forwards}@keyframes specimen-caption{to{opacity:1}}
+body.specimen-morphing .site-header,body.specimen-morphing .observatory-copy,body.specimen-morphing .edge-nav,body.specimen-morphing .archive-total,body.specimen-morphing .zoom-controls{opacity:.08;transition:opacity .4s ease}
+
+@media(max-width:900px){.specimen-mode-key{display:none}.specimen-card{width:300px}}
+@media(max-width:760px){
+  .specimen-heading{left:20px;top:78px;width:72vw}.specimen-heading h1{font-size:55px}.specimen-heading>p:last-child{font-size:11px}
+  .specimen-card{left:12px;bottom:12px;width:calc(100vw - 24px);padding:10px 12px}.specimen-card strong{font-size:15px}
+  .specimen-reset-view{right:12px;top:70px}.specimen-hint{display:none}.specimen-label-item{display:none}
+  .specimen-portal{top:62%;width:86px;height:86px}.specimen-portal-label{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .specimen-transition.active .specimen-transition-line,.specimen-transition.active .specimen-transition-portal,.specimen-transition.active .specimen-transition-caption{animation-duration:.01ms!important;animation-delay:0ms!important}
+}
