@@ -218,5 +218,60 @@
     "sector_code": "SPO",
     "sector_name": "Sports",
     "city_code": "LA"
+  },
+  {
+    "source_zip": "LINE Model.zip",
+    "node_title": "Line Model Study 01",
+    "archive_code": "362-CMU-BER",
+    "asset_folder": "assets/models/line-model-01",
+    "legacy_archive_code": "OBJ-3620-SCN-21",
+    "legacy_node_title": "Line Model Study 01",
+    "sector_code": "CMU",
+    "sector_name": "Commercial Mixed Use",
+    "city_code": "BER"
+  },
+  {
+    "source_zip": "LINE Model 2.zip",
+    "node_title": "Line Model Study 02",
+    "archive_code": "744-HEA-AMS",
+    "asset_folder": "assets/models/line-model-02",
+    "legacy_archive_code": "OBJ-7440-SCN-22",
+    "legacy_node_title": "Line Model Study 02",
+    "sector_code": "HEA",
+    "sector_name": "Healthcare",
+    "city_code": "AMS"
+  },
+  {
+    "source_zip": "MODEL 3.zip",
+    "node_title": "Model Study 03",
+    "archive_code": "581-SPO-MAD",
+    "asset_folder": "assets/models/model-study-03",
+    "legacy_archive_code": "OBJ-5810-SCN-23",
+    "legacy_node_title": "Model Study 03",
+    "sector_code": "SPO",
+    "sector_name": "Sports",
+    "city_code": "MAD"
+  },
+  {
+    "source_zip": "MODEL 4.zip",
+    "node_title": "Model Study 04",
+    "archive_code": "927-HOS-ROM",
+    "asset_folder": "assets/models/model-study-04",
+    "legacy_archive_code": "OBJ-9270-SCN-24",
+    "legacy_node_title": "Model Study 04",
+    "sector_code": "HOS",
+    "sector_name": "Hospitality",
+    "city_code": "ROM"
+  },
+  {
+    "source_zip": "MODEL 5.zip",
+    "node_title": "Model Study 05",
+    "archive_code": "305-MIS-FRA",
+    "asset_folder": "assets/models/model-study-05",
+    "legacy_archive_code": "OBJ-3050-SCN-25",
+    "legacy_node_title": "Model Study 05",
+    "sector_code": "MIS",
+    "sector_name": "Mission Critical",
+    "city_code": "FRA"
   }
 ]
