@@ -1108,3 +1108,102 @@ body.specimen-morphing .site-header,body.specimen-morphing .observatory-copy,bod
 @media(max-width:1120px){
   .relationship-filter-grid-sectors{grid-template-columns:1fr}
 }
+
+
+/* ============================================================
+   HISTORICAL TIMELINE — 1939 TO PRESENT
+   ============================================================ */
+.timeline-list{
+  position:relative;
+  padding-bottom:60px;
+}
+.year-group{
+  position:relative;
+  min-height:112px;
+}
+.year-group::before{
+  content:"";
+  position:absolute;
+  left:112px;
+  top:0;
+  bottom:-1px;
+  width:1px;
+  background:linear-gradient(to bottom,rgba(232,232,225,.26),rgba(232,232,225,.07));
+}
+.year-group::after{
+  content:"";
+  position:absolute;
+  left:108px;
+  top:34px;
+  width:9px;
+  height:9px;
+  border:1px solid rgba(231,231,224,.48);
+  border-radius:50%;
+  background:var(--bg);
+  box-shadow:0 0 14px rgba(231,231,224,.12);
+}
+.year-label{
+  position:relative;
+  z-index:1;
+  letter-spacing:-.06em;
+}
+.year-items{
+  padding-left:24px;
+}
+.timeline-item{
+  position:relative;
+  min-height:118px;
+}
+.timeline-object{cursor:pointer}
+.timeline-milestone{
+  cursor:default;
+  border-style:dashed;
+  background:rgba(255,255,255,.012);
+  color:var(--muted);
+}
+.timeline-milestone:hover{
+  transform:none;
+  border-color:rgba(255,255,255,.20);
+}
+.timeline-milestone h3{
+  color:#b8b9b4;
+  font-weight:400;
+}
+.timeline-item-type{
+  display:inline-block;
+  margin-top:15px;
+  color:#737570;
+  font:8px "Courier New",monospace;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.foundation-year{
+  margin-top:18px;
+  padding-top:34px;
+  border-top-color:rgba(235,235,227,.38);
+}
+.foundation-year::after{
+  width:15px;
+  height:15px;
+  left:105px;
+  top:62px;
+  background:#d8d8d1;
+  border-color:#f4f4ee;
+  box-shadow:0 0 0 7px rgba(232,232,225,.06),0 0 24px rgba(232,232,225,.2);
+}
+.timeline-foundation{
+  border-style:solid;
+  border-color:rgba(232,232,225,.34);
+  background:linear-gradient(135deg,rgba(255,255,255,.055),rgba(255,255,255,.012));
+}
+.timeline-foundation h3{
+  color:#e0e0da;
+  font-size:18px;
+}
+.timeline-foundation small{
+  color:#d5d9de;
+}
+@media(max-width:760px){
+  .year-group::before,.year-group::after{display:none}
+  .year-items{padding-left:0}
+}
