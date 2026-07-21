@@ -1043,22 +1043,6 @@ body.atlas-morphing .site-header{opacity:.12;transition:opacity .4s ease}
 .specimen-reset-view{position:absolute;z-index:7;right:28px;top:92px;border:1px solid rgba(255,255,255,.17);background:rgba(8,10,10,.58);color:#929a98;padding:7px 10px;font:9px "Courier New",monospace;text-transform:uppercase;cursor:pointer}.specimen-reset-view:hover{color:#fff;border-color:rgba(255,255,255,.38)}
 .specimen-hint{position:absolute;z-index:5;left:50%;bottom:24px;transform:translateX(-50%);color:rgba(215,222,219,.32);font:8px "Courier New",monospace;text-transform:uppercase;letter-spacing:.07em;white-space:nowrap;pointer-events:none}
 
-.specimen-portal{
-  position:absolute;z-index:13;left:50%;top:56%;width:112px;height:112px;transform:translate(-50%,-50%);
-  border:0;border-radius:50%;background:transparent;color:#bcc5c3;cursor:pointer
-}
-.specimen-portal-rings,.specimen-portal-rings::before,.specimen-portal-rings::after{
-  position:absolute;content:"";inset:0;border:1px solid rgba(218,226,224,.16);border-radius:50%;transition:.45s cubic-bezier(.2,.8,.2,1)
-}
-.specimen-portal-rings::before{inset:13px;border-color:rgba(218,226,224,.23)}
-.specimen-portal-rings::after{inset:31px;border-color:rgba(235,241,239,.38)}
-.specimen-portal-core{position:absolute;left:50%;top:50%;width:9px;height:9px;transform:translate(-50%,-50%);border-radius:50%;background:#dce3e1;box-shadow:0 0 18px rgba(205,224,227,.5)}
-.specimen-portal-label{position:absolute;left:50%;top:calc(100% + 12px);transform:translateX(-50%);width:180px;text-align:center;opacity:.48;transition:.3s ease;font:7px "Courier New",monospace;text-transform:uppercase;letter-spacing:.08em}
-.specimen-portal-label b{display:block;color:#d5ddda;font-size:8px;font-weight:400}.specimen-portal-label small{display:block;margin-top:3px;color:#69716f;font-size:6px}
-.specimen-portal:hover .specimen-portal-rings{transform:scale(1.24) rotate(45deg);border-color:rgba(235,242,240,.38)}
-.specimen-portal:hover .specimen-portal-rings::before{transform:scale(.82) rotate(-95deg);border-color:rgba(235,242,240,.48)}
-.specimen-portal:hover .specimen-portal-rings::after{transform:scale(1.16);border-color:rgba(255,255,255,.7)}
-.specimen-portal:hover .specimen-portal-label{opacity:1;transform:translateX(-50%) translateY(4px)}
 
 .specimen-transition{
   position:fixed;z-index:145;inset:0;overflow:hidden;background:#070909;opacity:0;visibility:hidden;pointer-events:none;
@@ -1090,7 +1074,6 @@ body.specimen-morphing .site-header,body.specimen-morphing .observatory-copy,bod
   .specimen-heading{left:20px;top:78px;width:72vw}.specimen-heading h1{font-size:55px}.specimen-heading>p:last-child{font-size:11px}
   .specimen-card{left:12px;bottom:12px;width:calc(100vw - 24px);padding:10px 12px}.specimen-card strong{font-size:15px}
   .specimen-reset-view{right:12px;top:70px}.specimen-hint{display:none}.specimen-label-item{display:none}
-  .specimen-portal{top:62%;width:86px;height:86px}.specimen-portal-label{display:none}
 }
 @media(prefers-reduced-motion:reduce){
   .specimen-transition.active .specimen-transition-line,.specimen-transition.active .specimen-transition-portal,.specimen-transition.active .specimen-transition-caption{animation-duration:.01ms!important;animation-delay:0ms!important}
