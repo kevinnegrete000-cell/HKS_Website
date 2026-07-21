@@ -163,5 +163,60 @@
     "sector_code": "HEA",
     "sector_name": "Healthcare",
     "city_code": "SYD"
+  },
+  {
+    "source_zip": "3d model 1.zip",
+    "node_title": "3D Model Study 01",
+    "archive_code": "684-CMU-NYC",
+    "asset_folder": "assets/models/3d-model-01",
+    "legacy_archive_code": "OBJ-6840-SCN-16",
+    "legacy_node_title": "3D Model Study 01",
+    "sector_code": "CMU",
+    "sector_name": "Commercial Mixed Use",
+    "city_code": "NYC"
+  },
+  {
+    "source_zip": "3d model 2 (might replace).zip",
+    "node_title": "3D Model Study 02 (Candidate)",
+    "archive_code": "239-HEA-BOS",
+    "asset_folder": "assets/models/3d-model-02",
+    "legacy_archive_code": "OBJ-2390-SCN-17",
+    "legacy_node_title": "3D Model Study 02 (Candidate)",
+    "sector_code": "HEA",
+    "sector_name": "Healthcare",
+    "city_code": "BOS"
+  },
+  {
+    "source_zip": "3d model 4.zip",
+    "node_title": "3D Model Study 04",
+    "archive_code": "875-AVI-PAR",
+    "asset_folder": "assets/models/3d-model-04",
+    "legacy_archive_code": "OBJ-8750-SCN-18",
+    "legacy_node_title": "3D Model Study 04",
+    "sector_code": "AVI",
+    "sector_name": "Aviation",
+    "city_code": "PAR"
+  },
+  {
+    "source_zip": "3d model 5.zip",
+    "node_title": "3D Model Study 05",
+    "archive_code": "416-HOS-MIL",
+    "asset_folder": "assets/models/3d-model-05",
+    "legacy_archive_code": "OBJ-4160-SCN-19",
+    "legacy_node_title": "3D Model Study 05",
+    "sector_code": "HOS",
+    "sector_name": "Hospitality",
+    "city_code": "MIL"
+  },
+  {
+    "source_zip": "3d model rams.zip",
+    "node_title": "Rams Spatial Study",
+    "archive_code": "527-SPO-LA",
+    "asset_folder": "assets/models/rams-spatial-study",
+    "legacy_archive_code": "OBJ-5270-SCN-20",
+    "legacy_node_title": "Rams Spatial Study",
+    "sector_code": "SPO",
+    "sector_name": "Sports",
+    "city_code": "LA"
   }
 ]
