@@ -5,9 +5,46 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HKS Digital Archive</title>
   <meta name="description" content="Interactive digital archive of rotating, textured architectural 3D objects.">
-  <link rel="stylesheet" href="style.css?v=6.2.0">
+  <link rel="stylesheet" href="style.css?v=6.3.0">
 </head>
-<body>
+<body class="site-loading">
+  <div id="siteLoader" class="site-loader" role="status" aria-live="polite" aria-label="Loading HKS Digital Archive">
+    <div class="site-loader-inner">
+      <div class="site-loader-title">HKS DIGITAL ARCHIVE</div>
+      <div class="site-loader-track" aria-hidden="true"><span id="siteLoaderBar"></span></div>
+      <div class="site-loader-meta">
+        <span>INITIALIZING ARCHIVE</span>
+        <span id="siteLoaderPercent">000%</span>
+      </div>
+    </div>
+  </div>
+  <script>
+    (() => {
+      const loader = document.getElementById('siteLoader');
+      const bar = document.getElementById('siteLoaderBar');
+      const percent = document.getElementById('siteLoaderPercent');
+      const duration = 4000;
+      const start = performance.now();
+
+      function update(now) {
+        const progress = Math.min(1, (now - start) / duration);
+        const value = Math.round(progress * 100);
+        if (bar) bar.style.transform = `scaleX(${progress})`;
+        if (percent) percent.textContent = `${String(value).padStart(3, '0')}%`;
+
+        if (progress < 1) {
+          requestAnimationFrame(update);
+          return;
+        }
+
+        document.body.classList.remove('site-loading');
+        loader?.classList.add('is-complete');
+        window.setTimeout(() => loader?.remove(), 650);
+      }
+
+      requestAnimationFrame(update);
+    })();
+  </script>
   <header class="site-header" aria-label="Archive navigation">
     <a class="brand nav-btn active" href="#" data-view="observatory">Observatory</a>
     <nav class="nav" aria-label="Main navigation">
@@ -217,6 +254,6 @@
       }
     }
   </script>
-  <script type="module" src="script-specimens-v6-2.js?v=6.2.0"></script>
+  <script type="module" src="script-specimens-v6-2.js?v=6.3.0"></script>
 </body>
 </html>
